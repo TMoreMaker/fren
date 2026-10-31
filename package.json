@@ -1,0 +1,19 @@
+{
+  "name": "fren",
+  "private": true,
+  "packageManager": "pnpm@11.20.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r --filter=./apps/* build",
+    "typecheck": "pnpm -r typecheck",
+    "sdk:build": "pnpm --filter @fren/sdk build",
+    "db:push": "pnpm --filter @fren/web db:push",
+    "db:seed": "pnpm --filter @fren/web db:seed"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}

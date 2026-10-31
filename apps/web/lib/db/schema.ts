@@ -1,0 +1,154 @@
+// Data model: docs/02-BUILD-SPEC.md section 4.
+import {
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core'
+import type { AdapterAccountType } from 'next-auth/adapters'
+
+const createdAt = () => timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
+
+// Auth.js tables. Column names follow the Drizzle adapter's expected shape.
+export const users = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  email: text('email').unique(),
+  name: text('name'),
+  image: text('image'),
+  emailVerified: timestamp('email_verified', { withTimezone: true, mode: 'date' }),
+  createdAt: createdAt(),
+})
+
+export const accounts = pgTable(
+  'accounts',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    type: text('type').$type<AdapterAccountType>().notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('provider_account_id').notNull(),
+    refresh_token: text('refresh_token'),
+    access_token: text('access_token'),
+    expires_at: integer('expires_at'),
+    token_type: text('token_type'),
+    scope: text('scope'),
+    id_token: text('id_token'),
+    session_state: text('session_state'),
+  },
+  (t) => [primaryKey({ columns: [t.provider, t.providerAccountId] })],
+)
+
+export const sessions = pgTable('sessions', {
+  sessionToken: text('session_token').primaryKey(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { withTimezone: true, mode: 'date' }).notNull(),
+})
+
+export const verificationTokens = pgTable(
+  'verification_tokens',
+  {
+    identifier: text('identifier').notNull(),
+    token: text('token').notNull(),
+    expires: timestamp('expires', { withTimezone: true, mode: 'date' }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.identifier, t.token] })],
+)
+
+export type MomentKind = 'preset' | 'custom'
+export type Tone = 'warm' | 'playful' | 'straight'
+
+export const projects = pgTable(
+  'projects',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    publicKey: text('public_key').notNull().unique(),
+    productName: text('product_name'),
+    website: text('website'),
+    makerName: text('maker_name'),
+    photoUrl: text('photo_url'),
+    momentEvent: text('moment_event'),
+    momentLabel: text('moment_label'),
+    momentKind: text('moment_kind').$type<MomentKind>(),
+    tone: text('tone').$type<Tone>(),
+    headline: text('headline'),
+    message: text('message'),
+    amounts: jsonb('amounts').$type<number[]>(),
+    defaultAmount: integer('default_amount'),
+    currency: text('currency').default('USD').notNull(),
+    paypalEmail: text('paypal_email'),
+    paypalPayerId: text('paypal_payer_id'),
+    onboardingStep: text('onboarding_step').default('paypal').notNull(),
+    firstEventAt: timestamp('first_event_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('projects_public_key_idx').on(t.publicKey)],
+)
+
+export type EventType = 'moment' | 'shown' | 'skipped' | 'clicked' | 'dismissed' | 'paid'
+export type SkipReason = 'cooldown' | 'already_tipped' | 'test_off'
+
+export const events = pgTable(
+  'events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    type: text('type').$type<EventType>().notNull(),
+    eventName: text('event_name'),
+    anonId: text('anon_id'),
+    reason: text('reason').$type<SkipReason>(),
+    isTest: boolean('is_test').default(false).notNull(),
+    isSample: boolean('is_sample').default(false).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('events_project_created_idx').on(t.projectId, t.createdAt)],
+)
+
+export type DonationStatus = 'created' | 'completed' | 'failed'
+
+export const donations = pgTable(
+  'donations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    paypalOrderId: text('paypal_order_id').notNull().unique(),
+    paypalCaptureId: text('paypal_capture_id'),
+    amountCents: integer('amount_cents').notNull(),
+    currency: text('currency').notNull(),
+    payerName: text('payer_name'),
+    anonId: text('anon_id'),
+    status: text('status').$type<DonationStatus>().notNull(),
+    isSample: boolean('is_sample').default(false).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('donations_project_created_idx').on(t.projectId, t.createdAt)],
+)
+
+export const aiSuggestions = pgTable('ai_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  projectId: uuid('project_id')
+    .notNull()
+    .references(() => projects.id, { onDelete: 'cascade' }),
+  headline: text('headline').notNull(),
+  body: text('body').notNull(),
+  actionLabel: text('action_label'),
+  actionEvent: text('action_event'),
+  createdAt: createdAt(),
+  dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
+})
+
+export type Project = typeof projects.$inferSelect

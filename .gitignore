@@ -1,0 +1,16 @@
+node_modules/
+.next/
+dist/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+
+# secrets
+.env
+.env*
+!.env.example
+
+# built SDK copied into the web app
+apps/web/public/v1/fren.js

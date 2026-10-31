@@ -1,0 +1,53 @@
+/* Design tokens: docs/02-BUILD-SPEC.md section 10, plus docs/04-DESIGN-NOTES.md extras. */
+:root {
+  /* colour */
+  --ink: #0E0F0C;
+  --ink-2: #46474A;
+  --ink-3: #9C9CA6;
+  --ink-disabled: #7A7A85;
+  --ink-body: #3D3C39;
+  --brand: #A397FF;
+  --brand-hover: #9387F7;
+  --brand-ink: #1C1255;
+  --surface: #ECE8FF;
+  --surface-hover: #E2DEFF;
+  --surface-2: #F5F3FF;
+  --tint: #ECE9FF;
+  --line: #E1DCFF;
+  --input-line: #D9D3FF;
+  --page: #FFFFFF;
+
+  /* type (font variables come from next/font in app/layout.tsx) */
+  --font-display: var(--font-archivo), 'Archivo', sans-serif;
+  --font-body: var(--font-figtree), 'Figtree', system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+
+  /* radius */
+  --r-pill: 999px;
+  --r-card: 20px;
+  --r-panel: 24px;
+  --r-input: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--tint);
+}
