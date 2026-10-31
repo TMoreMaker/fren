@@ -22,11 +22,12 @@ Prerequisites: Node 22 or later, pnpm 11, a Neon Postgres database, a GitHub OAu
 ```bash
 pnpm i
 cp .env.example .env    # fill in every value
+ln -s ../../.env apps/web/.env   # Next reads env from its own folder
 pnpm db:push
 pnpm dev                # web on :3000, demo host on :3001, sdk watch
 ```
 
-The web app and demo host both read the root `.env`.
+The web app (through the symlink), scripts and demo host all read the root `.env`.
 
 ## Licence
 

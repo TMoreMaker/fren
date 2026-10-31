@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 // so require it directly.
 const { loadEnvConfig } = createRequire(import.meta.url)('@next/env') as typeof import('@next/env')
 
-// The monorepo keeps one .env at the root. Load it for Next, drizzle-kit and scripts.
+// The monorepo keeps one .env at the root. Load it for drizzle-kit and scripts.
+// Next itself reads apps/web/.env, a symlink to the root file.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
-loadEnvConfig(root)
+loadEnvConfig(root, undefined, undefined, true)
