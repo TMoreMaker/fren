@@ -6,6 +6,11 @@ Built for the PayPal AI Hackathon. Everything PayPal runs in sandbox.
 
 > Work in progress. Full judge instructions, live links and the AI and PayPal write-up land in build plan step 6.2.
 
+## Live
+
+- Dashboard: https://fren-tips.vercel.app
+- Demo product: https://fren-demo.vercel.app
+
 ## Repo
 
 | Path | What it is |
