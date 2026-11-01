@@ -40,14 +40,14 @@ export class PayPalError extends Error {
   }
 }
 
-async function call<T>(step: string, path: string, body: unknown): Promise<T> {
+async function call<T>(step: string, path: string, body: unknown, requestId: string = randomUUID()): Promise<T> {
   const res = await fetch(`${base()}${path}`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${await getAccessToken()}`,
       'Content-Type': 'application/json',
       // Idempotency key so a retry does not double charge.
-      'PayPal-Request-Id': randomUUID(),
+      'PayPal-Request-Id': requestId,
     },
     body: JSON.stringify(body),
   })
@@ -117,7 +117,23 @@ export interface CapturedOrder {
 }
 
 export function captureOrder(orderId: string): Promise<CapturedOrder> {
-  return call<CapturedOrder>('capture', `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {})
+  // Same request id per order, so a double click or retry returns the first capture.
+  return call<CapturedOrder>(
+    'capture',
+    `/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`,
+    {},
+    `fren-capture-${orderId}`,
+  )
+}
+
+/** PayPal's error name, e.g. "INSTRUMENT_DECLINED", from a failed call's body. */
+export function paypalIssue(err: PayPalError): string | null {
+  try {
+    const body = JSON.parse(err.body) as { details?: { issue?: string }[] }
+    return body.details?.[0]?.issue ?? null
+  } catch {
+    return null
+  }
 }
 
 /** Reads what PayPal says was captured. Never use the client's amount. */

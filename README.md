@@ -34,6 +34,10 @@ pnpm dev                # web on :3000, demo host on :3001, sdk watch
 
 The web app (through the symlink), scripts and demo host all read the root `.env`.
 
+## How the widget renders PayPal
+
+The widget lives in a Shadow DOM so it never touches the host page's CSS. PayPal's JS SDK handles that itself: when its container is inside a shadow root, it puts a `<slot>` there and renders its button iframe as a light-DOM child of Fren's host element, so the buttons still show inside the widget. Their styles are scoped to the iframe, so host CSS can't restyle them. Fren loads the PayPal SDK under its own namespace (`frenPayPal`), so a host page that already uses `window.paypal` is left alone.
+
 ## Licence
 
 MIT

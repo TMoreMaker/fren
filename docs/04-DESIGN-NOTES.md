@@ -43,6 +43,7 @@ Fill this in as each one is built, so it can be reviewed on the canvas.
 | 1.2 PayPal email input (Plan B) | 1.2 panel, `.fi` input from 2.x | not built |
 | 3.2 waiting and 60s hint | 3.2 check rows with grey ticks | not built |
 | 4.2 PayPal buttons inside the toast | 4.2 toast, buttons replace the Donate pill | not built |
+| 1.2 spike: bare card with the PayPal buttons (`fren.test()`) | 4.2 toast card (white, `--line` border, 20px radius, 352px, bottom right) with a title line | temporary, replaced by the toast in step 2.2 |
 | 4.2 toast with a real photo | 4.2 avatar circle, 2.3 photo | not built |
 | 4.2 toast under 480px | 4.2 toast, full width minus 16px | not built |
 | Section 12 error and empty states | Skeleton bars from the live preview, toast body text | not built |
