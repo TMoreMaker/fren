@@ -6,6 +6,7 @@ import {
   jsonb,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   uuid,
@@ -62,7 +63,6 @@ export const verificationTokens = pgTable(
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 )
 
-export type MomentKind = 'preset' | 'custom'
 export type Tone = 'warm' | 'playful' | 'straight'
 
 export const projects = pgTable(
@@ -77,9 +77,11 @@ export const projects = pgTable(
     website: text('website'),
     makerName: text('maker_name'),
     photoUrl: text('photo_url'),
-    momentEvent: text('moment_event'),
-    momentLabel: text('moment_label'),
-    momentKind: text('moment_kind').$type<MomentKind>(),
+    // The developer's words, and Fren AI's 3-item plan of what to watch for (spec 7.2).
+    momentDescription: text('moment_description'),
+    momentHints: jsonb('moment_hints').$type<string[]>(),
+    // Minimum confidence for the AI check to show the ask (spec 6.5).
+    aiThreshold: real('ai_threshold').default(0.75).notNull(),
     tone: text('tone').$type<Tone>(),
     headline: text('headline'),
     message: text('message'),
@@ -90,13 +92,14 @@ export const projects = pgTable(
     paypalPayerId: text('paypal_payer_id'),
     onboardingStep: text('onboarding_step').default('paypal').notNull(),
     firstEventAt: timestamp('first_event_at', { withTimezone: true }),
+    firstSpottedAt: timestamp('first_spotted_at', { withTimezone: true }),
     createdAt: createdAt(),
   },
   (t) => [index('projects_public_key_idx').on(t.publicKey)],
 )
 
-export type EventType = 'moment' | 'shown' | 'skipped' | 'clicked' | 'dismissed' | 'paid'
-export type SkipReason = 'cooldown' | 'already_tipped' | 'test_off'
+export type EventType = 'signal' | 'judged' | 'moment' | 'shown' | 'skipped' | 'clicked' | 'dismissed' | 'paid'
+export type SkipReason = 'cooldown' | 'already_tipped' | 'rate_limited' | 'ai_no' | 'ai_timeout'
 
 export const events = pgTable(
   'events',
@@ -106,7 +109,14 @@ export const events = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: 'cascade' }),
     type: text('type').$type<EventType>().notNull(),
+    // signal: "click" | "download" | "submit" | "route" | "custom". judged: the AI's kind, e.g. "export".
     eventName: text('event_name'),
+    // signal: the label ("Export", "chapter-1.pdf"). judged and shown: the AI's label.
+    detail: text('detail'),
+    confidence: real('confidence'),
+    // judged: how many times this anon_id has done this kind, 1 for the first.
+    occurrence: integer('occurrence'),
+    sessionId: text('session_id'),
     anonId: text('anon_id'),
     reason: text('reason').$type<SkipReason>(),
     isTest: boolean('is_test').default(false).notNull(),
@@ -131,6 +141,8 @@ export const donations = pgTable(
     currency: text('currency').notNull(),
     payerName: text('payer_name'),
     anonId: text('anon_id'),
+    // Copied from the "shown" event, e.g. "Exported chapter-1.pdf". Shown on the Overview.
+    triggerLabel: text('trigger_label'),
     status: text('status').$type<DonationStatus>().notNull(),
     isSample: boolean('is_sample').default(false).notNull(),
     createdAt: createdAt(),
@@ -146,7 +158,8 @@ export const aiSuggestions = pgTable('ai_suggestions', {
   headline: text('headline').notNull(),
   body: text('body').notNull(),
   actionLabel: text('action_label'),
-  actionEvent: text('action_event'),
+  // The new moment_description to apply.
+  actionDescription: text('action_description'),
   createdAt: createdAt(),
   dismissedAt: timestamp('dismissed_at', { withTimezone: true }),
 })

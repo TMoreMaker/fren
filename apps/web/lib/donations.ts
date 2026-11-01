@@ -94,7 +94,6 @@ export async function finishTip(project: Project, orderId: string, anonId: strin
   await db.insert(schema.events).values({
     projectId: project.id,
     type: 'paid',
-    eventName: project.momentEvent,
     anonId: anonId ?? donation.anonId,
   })
   return { payerName: captured.payerName }

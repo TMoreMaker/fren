@@ -2,25 +2,29 @@
 
 Fren is a hackathon entry for the PayPal AI Hackathon (Devpost). Deadline: **12 Nov 2026, 12:00 PST (22:00 SAST)**.
 
-Fren is a drop-in SDK for indie products. The developer adds one script and one line of code. When a user hits the product's "aha moment", Fren shows a small tip ask. The user tips through PayPal and the money goes straight to the developer's PayPal account.
+Fren is a drop-in SDK for indie products. The developer describes their product's "aha moment" in plain words and adds one script tag. The SDK watches what users do, and **Fren AI (Claude) decides live when a user has reached that moment**. Then Fren shows a small tip ask. The user tips through PayPal and the money goes straight to the developer's PayPal account.
+
+The AI trigger is the heart of the entry. Read spec sections 6.4, 6.5 and 7.1 before touching the SDK.
 
 ## Read these first
 
 - `docs/01-PRODUCT-BRIEF.md`: what we are building, the demo story, what is out of scope.
 - `docs/02-BUILD-SPEC.md`: architecture, data model, API, SDK, PayPal flow, AI prompts, screens, design tokens.
 - `docs/03-BUILD-PLAN.md`: ordered steps with a "done when" check for each. Work through it in order.
-- `docs/04-DESIGN-NOTES.md`: how the design and the docs fit together, known conflicts, extra tokens, states built without a frame.
+- `docs/04-DESIGN-NOTES.md`: where a frame and the docs disagree and what we build, plus the extra tokens taken from the canvas.
 
-Design reference: the "Hackathon build" page of the Fren Hi-fi canvas (Claude Design, https://claude.ai/artifact/PPUh4TJEQ2honEXztz5vtu). Frame numbers in the docs (e.g. `2.6`) refer to that page. Read the frame's source before building a screen. The design decides the look, the docs decide scope. Never invent a state: build it from existing design parts and log it in `docs/04-DESIGN-NOTES.md`.
+Design reference: the "Hackathon build" page of the Fren Hi-fi canvas (Claude Design): https://claude.ai/artifact/PPUh4TJEQ2honEXztz5vtu. Frame numbers in the docs (e.g. `2.6`) refer to that page. Ignore the "Explorations" page.
 
 ## Hard rules
 
-1. **Scope is the hackathon build only.** One developer, one product, one aha moment, toast style only. If something is not in the brief, do not build it. Ask first.
-2. **Everything PayPal runs in sandbox.** Never use live credentials.
-3. **Money is checked on the server.** The amount captured must match an amount the project allows. Never trust the client.
-4. **The SDK must not break the host site.** Render inside a Shadow DOM, catch every error, never throw into the host page, no global CSS.
-5. **Sample data is always labelled.** Seeded rows have `is_sample = true` and the UI says "Includes sample traffic".
-6. **Secrets live in env vars only.** Never commit `.env*`. Keep `.env.example` up to date.
+1. **Build the UI from the canvas, exactly.** Match the layout, copy, spacing, colours and states of each frame. Do not invent screens, components or styles. If a screen or state you need is not on the canvas, stop and ask.
+2. **Fren AI is the trigger.** Never replace the AI check with a hard-coded event. `fren.moment()` is only a manual override.
+3. **Scope is the hackathon build only.** One developer, one product, one aha moment, toast style only. If something is not in the brief, do not build it. Ask first.
+4. **Everything PayPal runs in sandbox.** Never use live credentials.
+5. **Money is checked on the server.** The amount captured must match an amount the project allows. Never trust the client.
+6. **The SDK must not break the host site, and it never reads what users type.** Render inside a Shadow DOM, catch every error, never throw into the host page, no global CSS, passive listeners only.
+7. **Sample data is always labelled.** Seeded rows have `is_sample = true` and the UI says "Includes sample traffic".
+8. **Secrets live in env vars only.** Never commit `.env*`. Keep `.env.example` up to date.
 
 ## Stack
 
@@ -30,7 +34,7 @@ Design reference: the "Hackathon build" page of the Fren Hi-fi canvas (Claude De
 - `apps/demo-host`: a tiny stand-in "product" used to demo the install. One page, one button that triggers the aha moment.
 - Database: Postgres (Neon) with Drizzle ORM.
 - Auth: Auth.js with GitHub.
-- AI: Anthropic API, model `claude-sonnet-5-5`, via `@anthropic-ai/sdk`.
+- AI: Anthropic API via `@anthropic-ai/sdk`. `claude-haiku-4-5-20251001` for the live moment check (speed). `claude-sonnet-5-5` for the watch plan, the ask drafts and the dashboard suggestion.
 - Payments: PayPal Orders v2 REST API (server) and PayPal JS SDK buttons (in the widget).
 
 ## Conventions

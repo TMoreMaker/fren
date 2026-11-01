@@ -14,9 +14,8 @@ if (!project) throw new Error(`no project with key ${key}`)
 const demo = {
   productName: 'Inkwell',
   makerName: 'Lebo',
-  momentEvent: 'first_export',
-  momentLabel: 'First export or download',
-  momentKind: 'preset' as const,
+  momentDescription: 'When someone exports their first chapter as a PDF or ePub.',
+  momentHints: ['A click on Export', 'A PDF or ePub download', 'The first time only'],
   amounts: [3, 5, 10],
   defaultAmount: 5,
   paypalEmail: process.env.PAYPAL_SANDBOX_PAYEE_EMAIL ?? null,
