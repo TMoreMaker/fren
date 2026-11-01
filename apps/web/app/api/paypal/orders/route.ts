@@ -12,7 +12,7 @@ const body = z.object({
 export const OPTIONS = preflight
 
 export function POST(req: Request) {
-  return sdkRoute(req, body, async (project, { amount, anonId }) => ({
-    orderId: await startTip(project, amount, anonId ?? null),
-  }))
+  // PayPal sends the buyer back to this app, which captures and closes the window.
+  const returnUrl = new URL('/paypal/done', req.url).toString()
+  return sdkRoute(req, body, (project, { amount, anonId }) => startTip(project, amount, anonId ?? null, returnUrl))
 }

@@ -21,8 +21,10 @@ Canvas: Fren Hi-fi, page "Hackathon build" (https://claude.ai/artifact/PPUh4TJEQ
 | 3.1 | Agent prompt says install `@fren/sdk` | Script tag or npm | Spec 6.1 wording. |
 | 5.1 | $136, 24 tips | Seed gives about $131, 23 tips | Whatever the data says. |
 | 5.1 | "Preview your ask", "Share report", chart tabs | Not listed | Ask first before building. |
-| 4.2 | Donate opens a PayPal checkout stand-in (4.3) | PayPal buttons in the toast (spec 6.6) | Agreed 1 Nov: PayPal's own buttons (gold pill, 44px) take the Donate button's place. Until they load, the button reads "Loading PayPal…", disabled (`--surface`, `--ink-disabled`). |
-| 4.2 | No error states | Spec 12 copy | Agreed 1 Nov: one line in the message style above the button area. "PayPal didn't load. Try again." turns Donate into "Try again". Capture failed and other errors keep the PayPal buttons. |
+| 4.1 | Product drawn as grey blocks | The AI needs labelled buttons (spec 6.4) | Agreed 1 Nov: the frame's blocks get labels using its own classes. Sidebar: "Inkwell" mark, "New chapter", "Chapter 1" to "Chapter 3", "Settings". Header: chapter title, "Rename", "Export". Content stays grey. After Export, the green tick and the dark bottom bar ("Exported chapter-1.pdf", no right-hand box). |
+| 4.1 | Indigo "Fren AI: first export spotted, 92% sure" pill | Step 2.4: show with `?fren=debug` | Shown by the SDK for 5 seconds when the AI says yes: "Fren AI: {label}, {confidence}% sure". |
+| 4.2 | Donate opens a PayPal checkout stand-in (4.3) | Spec 6.6 | Agreed 1 Nov: our purple Donate button opens PayPal's real checkout page in a window. One click, frame 4.2 unchanged. While waiting, the button reads "Waiting for PayPal…". The window returns to a one-line Fren page that closes itself. |
+| 4.2 | No error states | Spec 12 copy | Agreed 1 Nov: one line in the message style above the button area ("Allow pop-ups to pay with PayPal.", "PayPal didn't load. Try again.", "Payment didn't go through. You weren't charged."). The Donate button stays. |
 | 4.4 | "Thank you, Mpho." | Payer name can be missing | Agreed 1 Nov: "Thank you." when PayPal gives no name. |
 
 ## Extra colours from the design
@@ -39,6 +41,4 @@ Add others here as they come up, with the frame they came from.
 
 ## Temporary
 
-| What | Why | Goes away |
-|---|---|---|
-| Plain test buttons, link, form and Export on the demo host | Steps 1.2 to 2.2 checks (Export waits 1 second, as in 2.4) | Step 2.4, replaced by frame 4.1 |
+Nothing temporary right now.

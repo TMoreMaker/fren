@@ -1,7 +1,7 @@
 // Tip payments: docs/02-BUILD-SPEC.md sections 5.3 and 7.3.
 import { and, desc, eq, gt } from 'drizzle-orm'
 import { db, schema } from './db'
-import type { Project } from './db/schema'
+import type { DonationStatus, Project } from './db/schema'
 import { captureOrder, createOrder, PayPalError, paypalIssue, readCapture } from './paypal'
 
 export type TipError =
@@ -28,8 +28,16 @@ export async function projectByKey(key: string): Promise<Project> {
   return project
 }
 
-/** Creates the PayPal order and a `created` donation row. Returns the order id. */
-export async function startTip(project: Project, amount: number, anonId: string | null): Promise<string> {
+/**
+ * Creates the PayPal order and a `created` donation row. Returns the order id and the PayPal page
+ * where the buyer approves it, which sends them back to `returnUrl` (the app's /paypal/done).
+ */
+export async function startTip(
+  project: Project,
+  amount: number,
+  anonId: string | null,
+  returnUrl: string,
+): Promise<{ orderId: string; approveUrl: string }> {
   if (!project.paypalEmail || !project.amounts?.length) throw new TipFailure('not_ready', 409)
   // Money is checked on the server: only the project's own amounts.
   if (!project.amounts.includes(amount)) throw new TipFailure('amount_not_allowed', 400)
@@ -41,7 +49,11 @@ export async function startTip(project: Project, amount: number, anonId: string 
     payeeEmail: project.paypalEmail,
     amount,
     currency: project.currency,
+    returnUrl,
+    cancelUrl: `${returnUrl}?cancelled=1`,
   })
+  const approveUrl = order.links.find((l) => l.rel === 'payer-action' || l.rel === 'approve')?.href
+  if (!approveUrl) throw new Error('PayPal order has no approve link')
   await db.insert(schema.donations).values({
     projectId: project.id,
     paypalOrderId: order.id,
@@ -51,7 +63,7 @@ export async function startTip(project: Project, amount: number, anonId: string 
     triggerLabel: anonId ? await lastAskLabel(project.id, anonId) : null,
     status: 'created',
   })
-  return order.id
+  return { orderId: order.id, approveUrl }
 }
 
 /** What Fren AI said the visitor had just done when the ask was shown, e.g. "Exported chapter-1.pdf". */
@@ -120,4 +132,45 @@ export async function finishTip(project: Project, orderId: string, anonId: strin
 
 async function markFailed(id: string) {
   await db.update(schema.donations).set({ status: 'failed' }).where(eq(schema.donations.id, id))
+}
+
+async function donationByOrder(orderId: string) {
+  const [donation] = await db.select().from(schema.donations).where(eq(schema.donations.paypalOrderId, orderId)).limit(1)
+  return donation ?? null
+}
+
+/** Where a tip stands, for the widget waiting on the PayPal window. */
+export async function tipStatus(project: Project, orderId: string) {
+  const donation = await donationByOrder(orderId)
+  if (!donation || donation.projectId !== project.id) throw new TipFailure('unknown_order', 404)
+  return { status: donation.status, payerName: donation.status === 'completed' ? donation.payerName : null }
+}
+
+/**
+ * PayPal sent the buyer back to /paypal/done. Capture on the server, so the tip completes
+ * even if the widget's page is gone. Returns the outcome for the page's message.
+ */
+export async function finishFromReturn(orderId: string, cancelled: boolean): Promise<DonationStatus> {
+  const donation = await donationByOrder(orderId)
+  if (!donation) return 'failed'
+  if (donation.status !== 'created') return donation.status
+  if (cancelled) {
+    await db
+      .update(schema.donations)
+      .set({ status: 'cancelled' })
+      .where(and(eq(schema.donations.id, donation.id), eq(schema.donations.status, 'created')))
+    return 'cancelled'
+  }
+  const [project] = await db.select().from(schema.projects).where(eq(schema.projects.id, donation.projectId)).limit(1)
+  try {
+    await finishTip(project!, orderId, donation.anonId)
+    return 'completed'
+  } catch {
+    // A declined card can't be retried from here, so the widget starts a new order instead.
+    await db
+      .update(schema.donations)
+      .set({ status: 'failed' })
+      .where(and(eq(schema.donations.id, donation.id), eq(schema.donations.status, 'created')))
+    return 'failed'
+  }
 }

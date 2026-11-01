@@ -29,7 +29,7 @@ One person building a product on their own (an indie hacker or open-source maint
 
 | Requirement | How Fren meets it |
 |---|---|
-| Meaningful PayPal integration (sandbox) | Orders v2 API (create and capture), PayPal JS SDK buttons in the widget, payments routed to the developer's own PayPal account. Optional: Log in with PayPal for the connect step. |
+| Meaningful PayPal integration (sandbox) | Orders v2 API (create, approve in PayPal's checkout window, capture on the server), payments routed to the developer's own PayPal account. Optional: Log in with PayPal for the connect step. |
 | Meaningful AI use | **Claude decides when to ask.** Claude Haiku 4.5 reads each user's recent actions live and judges whether they just reached the moment the developer described. That verdict triggers the PayPal ask. Claude Sonnet 5.5 also turns the description into a watch plan, writes the ask in the developer's voice, and reads the stats to suggest a better moment. |
 | Working prototype, not mockups | Hosted dashboard on Vercel, a hosted demo product, real sandbox payments end to end. |
 | Public repo with licence and run instructions | MIT licence, README with setup steps and env vars. |

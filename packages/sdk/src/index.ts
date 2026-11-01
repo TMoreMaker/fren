@@ -1,6 +1,7 @@
 // Public API: docs/02-BUILD-SPEC.md section 6.2.
 import { type ApiConfig, initSdk, type ProjectInfo, sendMoment, sendSignals, trackAsk, type Visitor } from './api'
 import { showToast } from './toast'
+import { showVerdictPill } from './verdict-pill'
 import { customSignal, type Signal, watchSignals } from './signals'
 import { anonId, askedOrTipped, readStorage, sessionId, writeStorage } from './storage'
 
@@ -12,15 +13,16 @@ export interface InitOptions {
 // Where fren.js is served from. The script tag entry fills this in from its own src.
 export const defaults = { apiBase: 'https://fren-tips.vercel.app' }
 
-const flag = (() => {
+// ?fren=test and ?fren=debug, alone, together (?fren=test&fren=debug) or as ?fren=test,debug.
+const flags = (() => {
   try {
-    return new URLSearchParams(location.search).get('fren')
+    return new URLSearchParams(location.search).getAll('fren').flatMap((v) => v.split(','))
   } catch {
-    return null
+    return []
   }
 })()
-const testMode = flag === 'test'
-const debugMode = flag === 'debug'
+const testMode = flags.includes('test')
+const debugMode = flags.includes('debug')
 
 const debug = (...args: unknown[]) => {
   if (debugMode) console.debug('[fren]', ...args)
@@ -80,7 +82,10 @@ function flushSignals() {
   sendSignals(config, visitor(), trail)
     .then((result) => {
       debug('verdict', result)
-      if (result.show) openAsk(result.headline)
+      if (result.show) {
+        if (debugMode && result.verdict) showVerdictPill(result.verdict)
+        openAsk(result.headline)
+      }
     })
     .catch((err) => debug('signals failed', err))
     .finally(() => {

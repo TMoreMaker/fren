@@ -34,9 +34,9 @@ pnpm dev                # web on :3000, demo host on :3001, sdk watch
 
 The web app (through the symlink), scripts and demo host all read the root `.env`.
 
-## How the widget renders PayPal
+## How the widget takes payment
 
-The widget lives in a Shadow DOM so it never touches the host page's CSS. PayPal's JS SDK handles that itself: when its container is inside a shadow root, it puts a `<slot>` there and renders its button iframe as a light-DOM child of Fren's host element, so the buttons still show inside the widget. Their styles are scoped to the iframe, so host CSS can't restyle them. Fren loads the PayPal SDK under its own namespace (`frenPayPal`), so a host page that already uses `window.paypal` is left alone.
+The widget lives in a Shadow DOM so it never touches the host page's CSS. It loads no PayPal script. Its Donate button opens PayPal's own checkout page in a small window (Orders v2 approve link), so paying is one click and the button keeps Fren's design. When the buyer approves, PayPal sends that window to `/paypal/done` on the Fren app, which captures the payment on the server and closes the window. The widget asks the server for the order's status until it is done, then shows the thank-you. The tip goes straight to the developer's PayPal account (the order's payee), and the amount is checked on the server.
 
 ## Fren AI accuracy (build plan step 2.2)
 

@@ -14,7 +14,7 @@ if (!project) throw new Error(`no project with key ${key}`)
 const demo = {
   productName: 'Inkwell',
   makerName: 'Lebo',
-  momentDescription: 'When someone exports their first chapter as a PDF or ePub.',
+  momentDescription: 'When someone exports a chapter as a PDF or ePub for the first time.',
   momentHints: ['A click on Export', 'A PDF or ePub download', 'The first time only'],
   // The ask copy from frame 4.2, until onboarding (step 3.x) writes it.
   tone: 'warm' as const,

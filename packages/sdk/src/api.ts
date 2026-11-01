@@ -61,11 +61,11 @@ export const trackAsk = (config: ApiConfig, visitor: Visitor, type: 'clicked' | 
   post<{ ok: true }>(config, '/api/sdk/track', { ...visitor, type })
 
 export const createOrder = (config: ApiConfig, amount: number, anonId: string | null) =>
-  post<{ orderId: string }>(config, '/api/paypal/orders', { amount, anonId })
+  post<{ orderId: string; approveUrl: string }>(config, '/api/paypal/orders', { amount, anonId })
 
-export const captureOrder = (config: ApiConfig, orderId: string, anonId: string | null) =>
-  post<{ ok: true; payerName: string | null }>(
+export const orderStatus = (config: ApiConfig, orderId: string) =>
+  post<{ status: 'created' | 'completed' | 'failed' | 'cancelled'; payerName: string | null }>(
     config,
-    `/api/paypal/orders/${encodeURIComponent(orderId)}/capture`,
-    { anonId },
+    `/api/paypal/orders/${encodeURIComponent(orderId)}/status`,
+    {},
   )

@@ -1,7 +1,7 @@
 // The tip ask: docs/02-BUILD-SPEC.md sections 6.3 and 6.6, frames 4.2 (ask) and 4.4 (thank-you).
 // The states the frames don't show (loading, errors) are agreed in docs/04-DESIGN-NOTES.md.
 import type { ApiConfig, ProjectInfo } from './api'
-import { renderButtons } from './paypal'
+import { startCheckout } from './checkout'
 import { anonId } from './storage'
 
 export interface ToastOptions {
@@ -66,6 +66,7 @@ const TICK_ICON = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" s
 
 const ERRORS: Record<string, string> = {
   load: "PayPal didn't load. Try again.",
+  blocked: 'Allow pop-ups to pay with PayPal.',
   capture_failed: "Payment didn't go through. You weren't charged.",
 }
 const GENERIC_ERROR = 'Something went wrong. Try again.'
@@ -125,6 +126,7 @@ export function showToast(options: ToastOptions): void {
   let paid = false
   const close = () => {
     clearTimeout(thanksTimer)
+    stopWaiting?.()
     document.removeEventListener('keydown', onKey, true)
     host.remove()
     current = null
@@ -165,6 +167,8 @@ export function showToast(options: ToastOptions): void {
   const err = el('p', 'bd err')
   err.setAttribute('role', 'status')
 
+  // Set while the PayPal window is open.
+  let stopWaiting: (() => void) | null = null
   const pills = el('div', 'row amts')
   const pay = button('pay', '')
   const payArea = el('div', '')
@@ -172,7 +176,7 @@ export function showToast(options: ToastOptions): void {
   const setAmount = (value: number) => {
     amount = value
     for (const b of pills.querySelectorAll('button')) b.setAttribute('aria-pressed', String(b.dataset.amount === String(value)))
-    if (!pay.disabled && !pay.dataset.retry) pay.textContent = `Donate $${value} with PayPal`
+    if (!stopWaiting) pay.textContent = `Donate $${value} with PayPal`
   }
   for (const value of amounts) {
     const b = button('amt', `$${value}`)
@@ -195,37 +199,30 @@ export function showToast(options: ToastOptions): void {
   document.body.appendChild(host)
   card.focus()
 
-  // Paying (spec 6.6): PayPal's own buttons take the Donate button's place.
-  const showPayPal = async () => {
-    err.textContent = ''
-    pay.disabled = true
-    delete pay.dataset.retry
-    pay.textContent = 'Loading PayPal…'
-    // PayPal needs its container on the page while it renders.
-    const container = el('div', '')
-    payArea.append(container)
-    try {
-      await renderButtons(container, config, () => amount, anonId(), {
-        onPaid: (payerName) => {
-          paid = true
-          options.onPaid()
-          showThanks(payerName)
-        },
-        onCancel: () => (err.textContent = ''),
-        onError: (code) => (err.textContent = ERRORS[code] ?? GENERIC_ERROR),
-      })
-      pay.remove()
-    } catch {
-      container.remove()
-      err.textContent = ERRORS.load!
-      pay.disabled = false
-      pay.dataset.retry = '1'
-      pay.textContent = 'Try again'
-    }
+  // Paying (spec 6.6): the Donate button opens PayPal's checkout in a window.
+  const resetPay = () => {
+    stopWaiting = null
+    pay.textContent = `Donate $${amount} with PayPal`
   }
   pay.onclick = () => {
-    if (!pay.dataset.retry) options.onDonate()
-    void showPayPal()
+    // Clicking again while waiting starts over, e.g. after closing the PayPal window.
+    stopWaiting?.()
+    err.textContent = ''
+    options.onDonate()
+    pay.textContent = 'Waiting for PayPal…'
+    stopWaiting = startCheckout(config, amount, anonId(), {
+      onPaid: (payerName) => {
+        paid = true
+        stopWaiting = null
+        options.onPaid()
+        showThanks(payerName)
+      },
+      onCancel: resetPay,
+      onError: (code) => {
+        resetPay()
+        err.textContent = ERRORS[code] ?? GENERIC_ERROR
+      },
+    })
   }
 
   // Thank-you (frame 4.4).

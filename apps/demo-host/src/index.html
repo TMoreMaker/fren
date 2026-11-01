@@ -4,32 +4,99 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Inkwell</title>
+<!-- A stand-in product for the demo (frame 4.1). The script tag is the only Fren code on this page. -->
 <script src="%FREN_SCRIPT_URL%" data-key="%FREN_PUBLIC_KEY%" defer></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500&family=Lora:wght@500&display=swap">
+<style>
+body{margin:0;background:#fff;color:#141414;font-family:'Figtree',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+.row{display:flex;align-items:center;gap:12px}
+.app{width:100%;height:100vh;min-height:600px;display:flex;position:relative;overflow:hidden}
+.side{width:232px;flex-shrink:0;background:#FAFAFA;border-right:1px solid #EEE;padding:22px 18px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px}
+.mark{width:26px;height:26px;border-radius:7px;background:#141414;color:#fff;font:500 14px 'Lora',serif;display:flex;align-items:center;justify-content:center}
+.brand{font:500 15px 'Figtree',sans-serif}
+.label{width:60%;height:8px;border-radius:4px;background:#E6E6E6}
+.new{height:32px;border:0;border-radius:8px;background:#ECECEC;font:500 13px 'Figtree',sans-serif;color:#141414;text-align:left;padding:0 10px}
+.nav{display:flex;align-items:center;gap:10px;font:400 14px 'Figtree',sans-serif;color:#666;padding:8px 10px;border-radius:7px;border:0;background:none;text-align:left}
+.nav.on{background:#EFEFEF;color:#141414;font-weight:500}
+.me{border:0;background:none;padding:0;font:400 14px 'Figtree',sans-serif;color:#666}
+.me span{width:28px;height:28px;border-radius:50%;background:#DCDCDC}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.head{height:58px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid #EEE}
+.title{font:500 14px 'Figtree',sans-serif}
+.done{width:24px;height:24px;border-radius:50%;background:#E3F1E7;display:none;align-items:center;justify-content:center}
+.done.on{display:flex}
+.bo{display:inline-flex;align-items:center;height:32px;padding:0 13px;border:1px solid #DDD;border-radius:8px;background:#fff;font:500 13px 'Figtree',sans-serif;color:#141414}
+.bp{display:inline-flex;align-items:center;height:32px;padding:0 14px;border:0;border-radius:8px;background:#141414;color:#fff;font:500 13px 'Figtree',sans-serif}
+.bp:disabled{opacity:.6;cursor:default}
+.page{width:100%;max-width:640px;margin:0 auto;padding:52px 0;display:flex;flex-direction:column;gap:16px}
+.bar{height:12px;border-radius:5px;background:#EDEDED}
+.note{position:absolute;left:50%;bottom:28px;margin-left:116px;transform:translateX(-50%);display:none;align-items:center;gap:14px;padding:10px 16px;border-radius:12px;background:#141414;color:#fff;font:500 13px 'Figtree',sans-serif;box-shadow:0 16px 36px -12px rgba(0,0,0,.4)}
+.note.on{display:flex}
+</style>
 </head>
 <body>
-<!-- The stand-in product (frame 4.1) is build plan step 2.3. -->
-<!-- Build plan steps 1.2 and 2.1: plain test controls. Step 2.4 replaces them with frame 4.1. -->
-<button type="button" onclick="window.fren && fren.test()">Test a $5 tip</button>
-<button type="button">New chapter</button>
-<button type="button" aria-label="Rename chapter">Rename</button>
-<a href="#" onclick="history.pushState({}, '', '/editor/chapter-1?draft=1'); return false">Open chapter 1</a>
-<form name="feedback" onsubmit="return false">
-  <input name="note" placeholder="Type something">
-  <button type="submit">Send</button>
-</form>
-<button type="button" onclick="exportChapter()">Export</button>
+<div class="app">
+<aside class="side">
+<div class="row" style="gap:10px;padding-bottom:14px"><span class="mark">I</span><span class="brand">Inkwell</span></div>
+<span class="label"></span>
+<button type="button" class="new">New chapter</button>
+<button type="button" class="nav on" data-chapter="1">Chapter 1</button>
+<button type="button" class="nav" data-chapter="2">Chapter 2</button>
+<button type="button" class="nav" data-chapter="3">Chapter 3</button>
+<span style="flex:1"></span>
+<button type="button" class="row me" style="gap:10px"><span></span>Settings</button>
+</aside>
+<div class="main">
+<div class="head">
+<span class="title">Chapter 1</span><span style="flex:1"></span>
+<span class="done" aria-hidden="true"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2B6A45" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span>
+<button type="button" class="bo">Rename</button>
+<button type="button" class="bp" id="export">Export</button>
+</div>
+<div class="page">
+<span style="width:52%;height:40px;border-radius:8px;background:#E2E2E2;margin-bottom:10px"></span>
+<span class="bar"></span><span class="bar" style="width:94%"></span><span class="bar" style="width:88%"></span>
+<span style="height:180px;border-radius:14px;background:#F4F4F4;margin:8px 0"></span>
+<span class="bar"></span><span class="bar" style="width:76%"></span>
+</div>
+</div>
+<div class="note" role="status"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"></path></svg><span class="note-text"></span></div>
+</div>
 <script>
-  // A fake 1 second export, as in build plan step 2.4.
-  function exportChapter() {
-    setTimeout(download, 1000)
+  // The product's own behaviour. Fren only watches it through the script tag.
+  const title = document.querySelector('.title')
+  for (const nav of document.querySelectorAll('.nav')) {
+    nav.addEventListener('click', () => {
+      const n = nav.dataset.chapter
+      document.querySelector('.nav.on').classList.remove('on')
+      nav.classList.add('on')
+      title.textContent = `Chapter ${n}`
+      history.pushState({}, '', `/chapter-${n}${location.search}`)
+    })
   }
-  function download() {
-    const blob = new Blob(['Chapter 1'], { type: 'application/pdf' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = 'chapter-1.pdf'
-    a.click()
-  }
+
+  const exportButton = document.getElementById('export')
+  const note = document.querySelector('.note')
+  let noteTimer
+  // A fake 1 second export, then a real small file through a blob: link.
+  exportButton.addEventListener('click', () => {
+    exportButton.disabled = true
+    setTimeout(() => {
+      const n = document.querySelector('.nav.on').dataset.chapter
+      const file = `chapter-${n}.pdf`
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(new Blob([`Chapter ${n}`], { type: 'application/pdf' }))
+      a.download = file
+      a.click()
+      exportButton.disabled = false
+      document.querySelector('.done').classList.add('on')
+      note.querySelector('.note-text').textContent = `Exported ${file}`
+      note.classList.add('on')
+      clearTimeout(noteTimer)
+      noteTimer = setTimeout(() => note.classList.remove('on'), 4000)
+    }, 1000)
+  })
 </script>
 </body>
 </html>

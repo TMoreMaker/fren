@@ -138,7 +138,7 @@ export const events = pgTable(
   ],
 )
 
-export type DonationStatus = 'created' | 'completed' | 'failed'
+export type DonationStatus = 'created' | 'completed' | 'failed' | 'cancelled'
 
 export const donations = pgTable(
   'donations',

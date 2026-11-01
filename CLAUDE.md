@@ -35,7 +35,7 @@ Design reference: the "Hackathon build" page of the Fren Hi-fi canvas (Claude De
 - Database: Postgres (Neon) with Drizzle ORM.
 - Auth: Auth.js with GitHub.
 - AI: Anthropic API via `@anthropic-ai/sdk`. `claude-haiku-4-5-20251001` for the live moment check (speed). `claude-sonnet-5-5` for the watch plan, the ask drafts and the dashboard suggestion.
-- Payments: PayPal Orders v2 REST API (server) and PayPal JS SDK buttons (in the widget).
+- Payments: PayPal Orders v2 REST API. The widget's Donate button opens PayPal's checkout page in a window; the server captures when PayPal sends it back (spec 6.6).
 
 ## Conventions
 

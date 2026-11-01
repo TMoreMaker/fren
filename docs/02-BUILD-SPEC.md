@@ -14,7 +14,7 @@ Screen numbers (e.g. `2.6`) match the "Hackathon build" page of the Fren Hi-fi c
  │ install, dashboard   │               │  (no other code: SDK watches user actions) │
  └─────────┬────────────┘               │        │                                   │
            │                            │  Fren widget (Shadow DOM toast)            │
-           │                            │  PayPal JS SDK buttons (loaded on demand)  │
+           │                            │  PayPal checkout window (approve link)     │
            │                            └────────┬───────────────────────────────────┘
            ▼                                     ▼
  ┌────────────────────────────────────────────────────────────────────────┐
@@ -79,7 +79,7 @@ fren/
       ├─ src/index.ts                         # init, moment, track, test mode
       ├─ src/signals.ts                       # watches clicks, downloads, submits, route changes
       ├─ src/widget.ts                        # Shadow DOM toast
-      ├─ src/paypal.ts                        # lazy-load PayPal JS SDK, render buttons
+      ├─ src/checkout.ts                      # open PayPal's checkout window, wait for the result
       ├─ src/api.ts                           # fetch wrappers to /api/sdk/*
       ├─ src/styles.ts                        # widget CSS string
       └─ tsup.config.ts
@@ -293,7 +293,7 @@ Test mode: if the page URL has `?fren=test`, the cooldown and already-tipped rul
   3. Headline (e.g. "Glad that export worked.").
   4. Message.
   5. Three amount pills, the default one selected.
-  6. Primary button "Donate ${amount} with PayPal". Clicking it swaps the button area for the PayPal buttons (6.6).
+  6. Primary button "Donate ${amount} with PayPal". Clicking it opens PayPal's checkout in a window (6.6), so paying is one click.
   7. "Maybe later" link on the left, "powered by fren" on the right.
 - Thank-you state (4.4): tick icon, "Thank you, {payerFirstName}.", "Your ${amount} went straight to {makerName}. We won't ask again for a while." Auto-hide after 8 seconds.
 - Animate in: 200ms slide up and fade. Respect `prefers-reduced-motion`.
@@ -340,12 +340,12 @@ Cost and speed: only labelled actions are sent, never mouse moves or scrolls. Ha
 
 ### 6.6 Paying (frame 4.3)
 
-1. When the user clicks Donate, the widget loads the PayPal JS SDK once:
-   `https://www.paypal.com/sdk/js?client-id={NEXT_PUBLIC_PAYPAL_CLIENT_ID}&currency=USD&intent=capture`
-2. Render `paypal.Buttons` into a container inside the toast. (The PayPal buttons render their own iframe, which is fine inside the Shadow DOM host. If it misbehaves, render the container in the light DOM next to the host element. Test this early, it is a known risk.)
-3. `createOrder` calls `POST /api/paypal/orders` and returns the `orderId`.
-4. `onApprove` calls `POST /api/paypal/orders/:id/capture`, then shows the thank-you state.
-5. `onCancel` returns to the ask. `onError` shows "Something went wrong. Try again." and logs it.
+Our own Donate button opens PayPal's checkout page (Orders v2 approve link) in a window. No PayPal script is loaded into the host page. Changed on 1 Nov from PayPal JS SDK buttons, which forced a second click or PayPal's own colours.
+
+1. Clicking Donate opens a window at once (inside the click, so it isn't blocked), then calls `POST /api/paypal/orders`. The server returns the `orderId` and PayPal's approve URL, and the window goes there. The button reads "Waiting for PayPal…".
+2. PayPal sends the window back to `/paypal/done?token={orderId}` on the app (or `&cancelled=1`). That page captures on the server, sets the donation to `completed`, `failed` or `cancelled`, shows one line and closes the window.
+3. The widget asks `POST /api/paypal/orders/:id/status` every 1.5 seconds (PayPal's page cuts the link between the windows). `completed` shows the thank-you, `cancelled` resets the button, `failed` shows "Payment didn't go through. You weren't charged."
+4. A blocked window shows "Allow pop-ups to pay with PayPal." A failed order shows "PayPal didn't load. Try again." Clicking Donate again while waiting starts over.
 
 ### 6.7 Size and safety
 
