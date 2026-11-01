@@ -8,7 +8,24 @@
 </head>
 <body>
 <!-- The stand-in product (frame 4.1) is build plan step 2.3. -->
-<!-- Build plan step 1.2: opens the PayPal buttons for a $5 sandbox tip. -->
+<!-- Build plan steps 1.2 and 2.1: plain test controls. Step 2.4 replaces them with frame 4.1. -->
 <button type="button" onclick="window.fren && fren.test()">Test a $5 tip</button>
+<button type="button">New chapter</button>
+<button type="button" aria-label="Rename chapter">Rename</button>
+<a href="#" onclick="history.pushState({}, '', '/editor/chapter-1?draft=1'); return false">Open chapter 1</a>
+<form name="feedback" onsubmit="return false">
+  <input name="note" placeholder="Type something">
+  <button type="submit">Send</button>
+</form>
+<button type="button" onclick="exportChapter()">Export</button>
+<script>
+  function exportChapter() {
+    const blob = new Blob(['Chapter 1'], { type: 'application/pdf' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'chapter-1.pdf'
+    a.click()
+  }
+</script>
 </body>
 </html>

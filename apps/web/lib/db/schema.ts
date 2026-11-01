@@ -9,8 +9,10 @@ import {
   real,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
 import type { AdapterAccountType } from 'next-auth/adapters'
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).defaultNow().notNull()
@@ -91,6 +93,8 @@ export const projects = pgTable(
     paypalEmail: text('paypal_email'),
     paypalPayerId: text('paypal_payer_id'),
     onboardingStep: text('onboarding_step').default('paypal').notNull(),
+    // Set by /api/sdk/init, drives the "SDK loaded" tick on 3.2.
+    sdkSeenAt: timestamp('sdk_seen_at', { withTimezone: true }),
     firstEventAt: timestamp('first_event_at', { withTimezone: true }),
     firstSpottedAt: timestamp('first_spotted_at', { withTimezone: true }),
     createdAt: createdAt(),
@@ -123,7 +127,13 @@ export const events = pgTable(
     isSample: boolean('is_sample').default(false).notNull(),
     createdAt: createdAt(),
   },
-  (t) => [index('events_project_created_idx').on(t.projectId, t.createdAt)],
+  (t) => [
+    index('events_project_created_idx').on(t.projectId, t.createdAt),
+    // The SDK resends its recent signals; each is stored once (lib/sdk.ts).
+    uniqueIndex('events_signal_once_idx')
+      .on(t.projectId, t.anonId, t.createdAt, t.eventName, t.detail)
+      .where(sql`type = 'signal'`),
+  ],
 )
 
 export type DonationStatus = 'created' | 'completed' | 'failed'

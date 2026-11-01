@@ -1,4 +1,5 @@
 // Fetch wrappers for the web app's public routes: docs/02-BUILD-SPEC.md section 5.3.
+import type { Signal } from './signals'
 
 export interface ApiConfig {
   key: string
@@ -21,6 +22,42 @@ async function post<T>(config: ApiConfig, path: string, body: object): Promise<T
   if (!res.ok) throw new ApiError(data.error ?? `http_${res.status}`)
   return data
 }
+
+export interface ProjectInfo {
+  makerName: string | null
+  photoUrl: string | null
+  initial: string | null
+  productName: string | null
+  headline: string | null
+  message: string | null
+  amounts: number[] | null
+  defaultAmount: number | null
+  currency: string
+}
+
+export interface AskResult {
+  show: boolean
+  headline?: string
+  label?: string
+  reason?: string
+}
+
+export interface Visitor {
+  anonId: string
+  sessionId: string
+  test: boolean
+}
+
+export const initSdk = (config: ApiConfig) => post<{ ok: true; project: ProjectInfo }>(config, '/api/sdk/init', {})
+
+export const sendSignals = (config: ApiConfig, visitor: Visitor, signals: Signal[]) =>
+  post<AskResult>(config, '/api/sdk/signals', { ...visitor, signals })
+
+export const sendMoment = (config: ApiConfig, visitor: Visitor, event: string) =>
+  post<AskResult>(config, '/api/sdk/moment', { ...visitor, event })
+
+export const trackAsk = (config: ApiConfig, visitor: Visitor, type: 'clicked' | 'dismissed') =>
+  post<{ ok: true }>(config, '/api/sdk/track', { ...visitor, type })
 
 export const createOrder = (config: ApiConfig, amount: number, anonId: string | null) =>
   post<{ orderId: string }>(config, '/api/paypal/orders', { amount, anonId })

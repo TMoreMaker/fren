@@ -1,5 +1,5 @@
-// Build plan step 1.2 only: PayPal buttons inside a Shadow DOM host, for a fixed $5.
-// The real toast (frame 4.2) replaces this in step 2.2.
+// Build plan step 1.2 only: PayPal buttons inside a Shadow DOM host.
+// The real toast (frame 4.2) replaces this in step 2.3.
 import type { ApiConfig } from './api'
 import { renderButtons } from './paypal'
 import { anonId } from './storage'
@@ -17,11 +17,13 @@ const css = `
 
 let open = false
 
-export async function showPaySpike(config: ApiConfig, amount = 5): Promise<void> {
+export async function showPaySpike(config: ApiConfig, amount: number, onPaid: () => void): Promise<void> {
   if (open) return
   open = true
   const host = document.createElement('div')
   host.setAttribute('data-fren', '')
+  // Keep the SDK's own clicks out of the signals.
+  host.setAttribute('data-fren-ignore', '')
   const root = host.attachShadow({ mode: 'open' })
   root.innerHTML = `<style>${css}</style>
     <div class="card" role="dialog" aria-label="Tip with PayPal">
@@ -36,6 +38,7 @@ export async function showPaySpike(config: ApiConfig, amount = 5): Promise<void>
   try {
     await renderButtons(container, config, amount, anonId(), {
       onPaid: (payerName) => {
+        onPaid()
         container.remove()
         status.textContent = `Thank you${payerName ? `, ${payerName.split(' ')[0]}` : ''}. Your $${amount} went straight to the maker.`
       },
