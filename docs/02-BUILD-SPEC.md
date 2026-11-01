@@ -207,9 +207,9 @@ All inputs validated with zod. Dashboard and onboarding routes need a session. S
 | Method and path | Body | Does |
 |---|---|---|
 | `POST /api/onboarding/paypal` | `{ email }` | Saves `paypal_email`. Basic email check. (Or the Log in with PayPal callback sets it, see 7.6.) |
-| `PATCH /api/project` | partial project fields | Saves answers step by step. Sets `onboarding_step`. |
+| Server action `saveAnswers(step)` | the step's form | Saves answers step by step (zod per step). Moves `onboarding_step` forward, never back. "Save and exit" saves, signs out and goes to `/`. |
 | `POST /api/project/photo` | multipart file | Uploads to Vercel Blob, saves `photo_url`. Optional. |
-| `POST /api/ai/moment-plan` | `{ description }` | Calls Claude, returns `{ lookFor: string[] }` (7.2). Saves `moment_description` and `moment_hints`. |
+| `POST /api/ai/moment-plan` | `{ description }` | Calls Claude, returns `{ lookFor: string[], headline }` (7.2). Saves `moment_description`, `moment_hints` and `headline`. |
 | `POST /api/ai/drafts` | none (reads project) | Calls Claude, returns 3 drafts (7.3). Does not save. |
 | `GET /api/project/status` | none | `{ sdkSeen, signalsSeen, spottedAt, spottedLabel, spottedConfidence, testAskShown }` for 3.2. Poll every 2s. |
 
@@ -414,9 +414,12 @@ An indie developer describes the moment their users get real value from their pr
 Turn it into a short plan of what a browser script could see when it happens: clicks, downloads, form submits, page changes.
 Return JSON only: {"lookFor":["...","...","..."]}
 Exactly 3 items, each under 45 characters, plain words, no code. The last item should say if it is the first time only or every time.
+Also write a headline for the tip ask the user sees right after that moment: 3 to 6 words reacting to it, in the given tone, e.g. "Glad that export worked." No emoji.
 ```
 
-User message: `Product: {productName}\nWebsite: {website}\nMoment: {description}`
+The headline was added on 1 Nov so the preview changes at 2.4, as on the canvas. It is saved as `headline`; 2.6 can replace it. Structured output (`output_config.format`), effort low, server-side fallback on.
+
+User message: `Product: {productName}\nWebsite: {website}\nTone: {tone, or warm}\nMoment: {description}`
 
 Show the result in the "Fren AI will watch for" box (2.4). Save it as `moment_hints`. On failure, hide the box and save an empty list. The check in 7.1 still works with the description alone.
 

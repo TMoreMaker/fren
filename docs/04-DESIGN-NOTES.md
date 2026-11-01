@@ -21,6 +21,12 @@ Canvas: Fren Hi-fi, page "Hackathon build" (https://claude.ai/artifact/PPUh4TJEQ
 | 3.1 | Agent prompt says install `@fren/sdk` | Script tag or npm | Spec 6.1 wording. |
 | 5.1 | $136, 24 tips | Seed gives about $131, 23 tips | Whatever the data says. |
 | 5.1 | "Preview your ask", "Share report", chart tabs | Not listed | Ask first before building. |
+| 2.x | "Save and exit" with no destination | Not specified | Agreed 1 Nov: saves the answers that are valid, signs out, goes to the sign-up page. Signing back in resumes at `onboarding_step`. |
+| 2.2 to 2.3 | Headline "Enjoying Inkwell?" | No headline until Fren AI writes one | The preview shows "Enjoying {product}?" until 2.4. |
+| 2.4 | Headline "Glad that export worked." | Spec 7.3 writes it at 2.6 | Agreed 1 Nov: the moment plan (7.2) also writes the headline, so the preview changes at 2.4. |
+| 2.4 | Only the filled "Fren AI will watch for" box | Plan takes 1 to 3 seconds | Agreed 1 Nov: the box shows 3 skeleton lines while Fren AI writes. Hidden when the box is empty or the plan failed (spec 12). |
+| 2.3 | "lebo.jpg" with Replace, or Upload | Upload can be slow or fail | While uploading, the pill reads "Uploading…". On failure, a line in the frame's warn style: "That photo didn't upload. Try a PNG or JPG under 4 MB." |
+| 2.x | Caption "Shows when Fren AI spots a user's first export." | The moment is the developer's own | "Shows after the moment you describe." until a moment is saved, then "Shows when Fren AI spots the moment you described." |
 | 4.1 | Product drawn as grey blocks | The AI needs labelled buttons (spec 6.4) | Agreed 1 Nov: the frame's blocks get labels using its own classes. Sidebar: "Inkwell" mark, "New chapter", "Chapter 1" to "Chapter 3", "Settings". Header: chapter title, "Rename", "Export". Content stays grey. After Export, the green tick and the dark bottom bar ("Exported chapter-1.pdf", no right-hand box). |
 | 4.1 | Indigo "Fren AI: first export spotted, 92% sure" pill | Step 2.4: show with `?fren=debug` | Shown by the SDK for 5 seconds when the AI says yes: "Fren AI: {label}, {confidence}% sure". |
 | 4.2 | Donate opens a PayPal checkout stand-in (4.3) | Spec 6.6 | Agreed 1 Nov: our purple Donate button opens PayPal's real checkout page in a window. One click, frame 4.2 unchanged. While waiting, the button reads "Waiting for PayPal…". The window returns to a one-line Fren page that closes itself. |

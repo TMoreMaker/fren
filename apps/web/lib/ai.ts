@@ -87,3 +87,68 @@ export async function judgeMoment(project: Project, signals: Signal[], reachedBe
     headline: verdict.isMoment && headline && headline.length < 40 && !EMOJI.test(headline) ? headline : fallback,
   }
 }
+
+// Sonnet for the slower, once-per-setup jobs (spec 7.2 to 7.4).
+const SETUP_MODEL = 'claude-sonnet-5-5'
+const setupClient = new Anthropic({ maxRetries: 1, timeout: 15_000 })
+
+const PLAN_SYSTEM = `An indie developer describes the moment their users get real value from their product.
+Turn it into a short plan of what a browser script could see when it happens: clicks, downloads, form submits, page changes.
+Exactly 3 items, each under 45 characters, plain words, no code. The last item should say if it is the first time only or every time.
+Also write a headline for the tip ask the user sees right after that moment: 3 to 6 words reacting to it, in the given tone, e.g. "Glad that export worked." No emoji.`
+
+const PLAN_FORMAT = {
+  type: 'json_schema' as const,
+  schema: {
+    type: 'object',
+    properties: {
+      lookFor: { type: 'array', items: { type: 'string' } },
+      headline: { type: 'string' },
+    },
+    required: ['lookFor', 'headline'],
+    additionalProperties: false,
+  },
+}
+
+const planSchema = z.object({
+  lookFor: z.array(z.string().trim().min(1).max(60)).length(3),
+  headline: z.string(),
+})
+
+/**
+ * "Fren AI will watch for" (spec 7.2), plus the headline the preview shows from step 2.4.
+ * Throws on an API error or bad JSON; the caller hides the box.
+ */
+export async function planMoment(
+  project: Pick<Project, 'productName' | 'website' | 'tone'>,
+  description: string,
+): Promise<{ lookFor: string[]; headline: string | null }> {
+  const reply = await setupClient.beta.messages.create({
+    model: SETUP_MODEL,
+    max_tokens: 2_000,
+    system: PLAN_SYSTEM,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          `Product: ${project.productName ?? ''}`,
+          `Website: ${project.website ?? ''}`,
+          `Tone: ${project.tone ?? 'warm'}`,
+          `Moment: ${description}`,
+        ].join('\n'),
+      },
+    ],
+    output_config: { effort: 'low', format: PLAN_FORMAT },
+    // If Sonnet declines, the API retries on a fallback model in the same call.
+    betas: ['server-side-fallback-2026-07-01'],
+    fallbacks: 'default',
+  })
+  if (reply.stop_reason === 'refusal') throw new Error('Plan refused')
+  const text = reply.content.find((b) => b.type === 'text')?.text ?? ''
+  const plan = planSchema.parse(JSON.parse(text))
+  const headline = plan.headline.trim()
+  return {
+    lookFor: plan.lookFor,
+    headline: headline && headline.length < 40 && !EMOJI.test(headline) ? headline : null,
+  }
+}

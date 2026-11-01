@@ -1,6 +1,8 @@
+'use client'
 // The ask questions, frames 2.1 to 2.8 (spec section 8): top bar, progress bar,
 // the question on the left and the live preview on the right.
 import Link from 'next/link'
+import { useFormStatus } from 'react-dom'
 import ui from '../ui.module.css'
 import s from './question.module.css'
 import { ArrowIcon, BackIcon, Logo } from './Shell'
@@ -61,10 +63,12 @@ export function QuestionLayout({
   )
 }
 
+/** The form's submit button. The answers go to the step's save action. */
 export function NextButton({ label = 'Next', disabled }: { label?: string; disabled?: boolean }) {
+  const { pending } = useFormStatus()
   return (
     <div className={s.actions}>
-      <button type="submit" className={`${s.pill} ${s.next}`} disabled={disabled}>
+      <button type="submit" name="intent" value="next" className={`${s.pill} ${s.next}`} disabled={disabled || pending}>
         {label}
         <ArrowIcon />
       </button>
@@ -72,9 +76,10 @@ export function NextButton({ label = 'Next', disabled }: { label?: string; disab
   )
 }
 
-export function ExitButton() {
+/** Sits in the top bar, outside the form, so it names the form it submits. */
+export function ExitButton({ form }: { form: string }) {
   return (
-    <button type="submit" className={`${s.pill} ${s.exit}`}>
+    <button type="submit" form={form} name="intent" value="exit" formNoValidate className={`${s.pill} ${s.exit}`}>
       Save and exit
     </button>
   )
