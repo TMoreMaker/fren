@@ -120,6 +120,8 @@ export const events = pgTable(
     confidence: real('confidence'),
     // judged: how many times this anon_id has done this kind, 1 for the first.
     occurrence: integer('occurrence'),
+    // judged: the AI's verdict, for "Reached this moment before" (spec 7.1).
+    isMoment: boolean('is_moment'),
     sessionId: text('session_id'),
     anonId: text('anon_id'),
     reason: text('reason').$type<SkipReason>(),

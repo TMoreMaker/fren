@@ -161,6 +161,7 @@ events
   detail      text null  // signal: the label ("Export", "chapter-1.pdf", "/editor"). judged and shown: the AI's label ("Exported chapter-1.pdf")
   confidence  real null  // judged and shown: the AI's confidence, 0 to 1
   occurrence  int null   // judged: how many times this anon_id has done this kind, 1 for the first
+  is_moment   bool null  // judged: the AI's verdict, for "Reached this moment before"
   session_id  text null  // random per page session
   anon_id     text   // random id stored in the end user's localStorage
   reason      text null  // for "skipped": "cooldown" | "already_tipped" | "rate_limited" | "ai_no" | "ai_timeout"
@@ -315,7 +316,7 @@ Never captured: anything typed, input values, page text, query strings, anything
 
 Batching:
 - Keep the last 20 signals in memory (and in `sessionStorage`, best effort, so a page change keeps the trail).
-- After each signal, wait 600ms for more, then `POST /api/sdk/signals` with the last 20.
+- After each signal, wait for more, then `POST /api/sdk/signals` with the last 20. Wait 1.5s after a click (it often starts something, like an export, that finishes a moment later) and 600ms after anything else.
 - Don't send while the toast is open, after the ask was shown in this session, or when `localStorage` says tipped or in cooldown.
 - `anonId` lives in `localStorage`. `sessionId` is new for each page load. Wrap every storage call in try/catch.
 
@@ -326,7 +327,7 @@ On every `POST /api/sdk/signals`, in this order. Stop at the first "skip".
 1. Save the new signals as `signal` events. Set `first_event_at` if empty.
 2. If this `anon_id` has a completed donation, skip with `already_tipped`. (Off in test mode.)
 3. If this `anon_id` was shown the ask in the last 30 days, skip with `cooldown`. (Off in test mode.)
-4. Rate limit per `sessionId`: at most one AI check every 3 seconds and 12 per session. Otherwise skip with `rate_limited` and **don't call the AI**.
+4. Rate limit per `sessionId`: at most one AI check every 3 seconds (counted from when a check starts) and 12 per session. Otherwise skip with `rate_limited` and **don't call the AI**.
 5. Call the AI check (7.1) with a 4 second timeout. On timeout or bad JSON, skip with `ai_timeout`. Never show the ask on an error.
 6. Log a `judged` event with the verdict, kind, label, confidence and occurrence.
 7. If `isMoment` is true and `confidence >= projects.ai_threshold`, log `shown` (with the label and confidence) and return `{ show: true, headline, label }`. Set `first_spotted_at` if empty. Otherwise skip with `ai_no`.
@@ -359,7 +360,7 @@ Cost and speed: only labelled actions are sent, never mouse moves or scrolls. Ha
 
 ### 7.1 AI: spot the moment (the trigger)
 
-Called from `POST /api/sdk/signals` (step 5 of 6.5). Model `claude-haiku-4-5-20251001`, because it runs while the user waits. `max_tokens` 200, temperature 0. Ask for JSON only.
+Called from `POST /api/sdk/signals` (step 5 of 6.5). Model `claude-haiku-4-5-20251001`, because it runs while the user waits. `max_tokens` 200. Structured output (`output_config.format`) for the JSON; the API no longer accepts `temperature`.
 
 System prompt:
 
@@ -393,7 +394,7 @@ Recent actions:
 4. download chapter-1.pdf
 ```
 
-"Reached this moment before" is yes when this `anon_id` already has a `judged` event with `isMoment` true.
+"Reached this moment before" is yes when this `anon_id` already has a `judged` event with `is_moment` true.
 
 Handling:
 

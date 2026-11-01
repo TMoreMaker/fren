@@ -40,6 +40,7 @@ export interface AskResult {
   headline?: string
   label?: string
   reason?: string
+  verdict?: { isMoment: boolean; confidence: number; label: string }
 }
 
 export interface Visitor {

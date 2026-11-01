@@ -52,11 +52,33 @@ export async function initSdk(project: Project) {
   }
 }
 
-export type AskResult = { show: true; headline?: string; label?: string } | { show: false; reason?: SkipReason }
+/** What the AI said, sent back for `?fren=debug` and the demo's verdict pill. */
+type Judged = Pick<Verdict, 'isMoment' | 'confidence' | 'label'>
 
-async function skip(project: Project, visitor: Visitor, reason: SkipReason): Promise<AskResult> {
+export type AskResult =
+  | { show: true; headline?: string; label?: string; verdict?: Judged }
+  | { show: false; reason?: SkipReason; verdict?: Judged }
+
+async function skip(project: Project, visitor: Visitor, reason: SkipReason, verdict?: Judged): Promise<AskResult> {
   await logEvent(project, visitor, { type: 'skipped', reason })
-  return { show: false, reason }
+  return { show: false, reason, verdict }
+}
+
+/** True when this visitor already has a `judged` event the AI said yes to. */
+async function reachedBefore(project: Project, visitor: Visitor) {
+  const [row] = await db
+    .select({ id: events.id })
+    .from(events)
+    .where(
+      and(
+        eq(events.projectId, project.id),
+        eq(events.anonId, visitor.anonId),
+        eq(events.type, 'judged'),
+        eq(events.isMoment, true),
+      ),
+    )
+    .limit(1)
+  return Boolean(row)
 }
 
 /**
@@ -115,12 +137,15 @@ export async function handleSignals(project: Project, visitor: Visitor, signals:
     return skip(project, visitor, 'rate_limited')
   }
 
+  // A check is stamped with when it started, so the 3 second gap runs from there (rule 4).
+  const checkedAt = new Date()
   let verdict: Verdict
   try {
-    // "Reached this moment before" lands with the real check in step 2.2.
-    verdict = await withTimeout(judgeMoment(project, trail, false), AI_TIMEOUT_MS)
-  } catch {
-    return skip(project, visitor, 'ai_timeout')
+    verdict = await withTimeout(judgeMoment(project, trail, await reachedBefore(project, visitor)), AI_TIMEOUT_MS)
+  } catch (err) {
+    console.error('moment check failed', err)
+    await logEvent(project, visitor, { type: 'skipped', reason: 'ai_timeout', createdAt: checkedAt })
+    return { show: false, reason: 'ai_timeout' }
   }
 
   let occurrence: number | null = null
@@ -144,9 +169,12 @@ export async function handleSignals(project: Project, visitor: Visitor, signals:
     detail: verdict.label || null,
     confidence: verdict.confidence,
     occurrence,
+    isMoment: verdict.isMoment,
+    createdAt: checkedAt,
   })
 
-  if (!verdict.isMoment || verdict.confidence < project.aiThreshold) return skip(project, visitor, 'ai_no')
+  const judged: Judged = { isMoment: verdict.isMoment, confidence: verdict.confidence, label: verdict.label }
+  if (!verdict.isMoment || verdict.confidence < project.aiThreshold) return skip(project, visitor, 'ai_no', judged)
 
   await logEvent(project, visitor, { type: 'shown', detail: verdict.label, confidence: verdict.confidence })
   if (!project.firstSpottedAt) {
@@ -155,7 +183,7 @@ export async function handleSignals(project: Project, visitor: Visitor, signals:
       .set({ firstSpottedAt: new Date() })
       .where(and(eq(projects.id, project.id), isNull(projects.firstSpottedAt)))
   }
-  return { show: true, headline: verdict.headline || undefined, label: verdict.label }
+  return { show: true, headline: verdict.headline || undefined, label: verdict.label, verdict: judged }
 }
 
 /** POST /api/sdk/moment: the manual override. Rules 2 and 3 only, no AI. */

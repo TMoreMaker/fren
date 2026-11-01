@@ -29,6 +29,9 @@ const debug = (...args: unknown[]) => {
 const TRAIL_KEY = 'fren_trail'
 const TRAIL_MAX = 20
 const SETTLE_MS = 600
+// A click often starts something (Export) that finishes a moment later (the download).
+// Waiting longer lets both reach the AI in one check instead of the click using up the rate limit.
+const CLICK_SETTLE_MS = 1_500
 
 let config: ApiConfig | null = null
 let project: ProjectInfo | null = null
@@ -59,7 +62,7 @@ function addSignal(signal: Signal) {
   writeStorage(TRAIL_KEY, JSON.stringify(trail), 'sessionStorage')
   debug('signal', signal)
   clearTimeout(sendTimer)
-  sendTimer = setTimeout(() => whenReady(flushSignals), SETTLE_MS)
+  sendTimer = setTimeout(() => whenReady(flushSignals), signal.type === 'click' ? CLICK_SETTLE_MS : SETTLE_MS)
 }
 
 // One batch in flight per page, so the server's rate limit sees each check in turn.

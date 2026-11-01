@@ -39,4 +39,4 @@ Add others here as they come up, with the frame they came from.
 | What | Why | Goes away |
 |---|---|---|
 | Plain card with the PayPal buttons, opened by `fren.test()` or a shown ask | Step 1.2 test of PayPal inside a Shadow DOM | Step 2.3, replaced by the 4.2 toast |
-| Plain test buttons, link, form and Export on the demo host | Steps 1.2 and 2.1 checks | Step 2.4, replaced by frame 4.1 |
+| Plain test buttons, link, form and Export on the demo host | Steps 1.2 to 2.2 checks (Export waits 1 second, as in 2.4) | Step 2.4, replaced by frame 4.1 |

@@ -19,7 +19,11 @@
 </form>
 <button type="button" onclick="exportChapter()">Export</button>
 <script>
+  // A fake 1 second export, as in build plan step 2.4.
   function exportChapter() {
+    setTimeout(download, 1000)
+  }
+  function download() {
     const blob = new Blob(['Chapter 1'], { type: 'application/pdf' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
