@@ -36,6 +36,9 @@ The design uses shades beyond spec section 10. They become named tokens (no othe
 | `--ink-disabled` | `#7A7A85` | Disabled text, inactive step labels |
 | `--ink-body` | `#3D3C39` | Toast message text |
 | `--surface-hover` | `#E2DEFF` | Secondary pill hover |
+| `--change-outline` | `#6E5FE6` | Dashed outline on the part of the preview that just changed (2.x) |
+| `--radio-line` | `#B3A9F5` | Radio rings and dashed upload borders (2.x) |
+| `--mock-*` | `#FAFAFA` `#EEEEEE` `#E2E2E2` `#F0F0F0` `#DCDCDC` `#EBEBEB` `#E6E6E6` `#EDEDED` `#F4F4F4` | The blank-blocks browser in the live preview (2.x) and the demo host (4.1) |
 
 Add others here as they come up, with the frame they came from.
 

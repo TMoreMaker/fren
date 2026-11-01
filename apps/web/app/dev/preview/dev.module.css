@@ -1,0 +1,20 @@
+.states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.state {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font: 600 13px var(--font-body);
+  color: var(--brand-ink);
+  text-decoration: none;
+}
+.on {
+  background: var(--brand-ink);
+  color: var(--page);
+}

@@ -16,6 +16,19 @@
   --line: #E1DCFF;
   --input-line: #D9D3FF;
   --page: #FFFFFF;
+  --change-outline: #6E5FE6;
+  --radio-line: #B3A9F5;
+
+  /* the blank-blocks browser mock in the live preview (frames 2.x) */
+  --mock-bar: #FAFAFA;
+  --mock-line: #EEEEEE;
+  --mock-dot: #E2E2E2;
+  --mock-url: #F0F0F0;
+  --mock-logo: #DCDCDC;
+  --mock-nav: #EBEBEB;
+  --mock-item: #E6E6E6;
+  --mock-text: #EDEDED;
+  --mock-image: #F4F4F4;
 
   /* type (font variables come from next/font in app/layout.tsx) */
   --font-display: var(--font-archivo), 'Archivo', sans-serif;

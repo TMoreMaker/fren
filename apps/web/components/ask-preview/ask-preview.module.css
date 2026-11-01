@@ -1,0 +1,197 @@
+/* The live preview from frames 2.1 to 2.8. The toast mirrors the SDK widget (frame 4.2) at preview size. */
+.panel {
+  flex: 1 1 540px;
+  min-width: 0;
+  background: var(--surface);
+  border-radius: var(--r-panel);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.title {
+  font: 700 15px var(--font-body);
+  color: var(--brand-ink);
+}
+.win {
+  position: relative;
+  height: 520px;
+  background: var(--page);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(28, 18, 85, 0.08), 0 18px 40px -20px rgba(28, 18, 85, 0.35);
+}
+.bar {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  background: var(--mock-bar);
+  border-bottom: 1px solid var(--mock-line);
+}
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--mock-dot);
+}
+.url {
+  margin: 0 auto;
+  width: 180px;
+  height: 18px;
+  background: var(--mock-url);
+  border-radius: 6px;
+}
+.body {
+  display: flex;
+  height: 482px;
+}
+.aside {
+  width: 140px;
+  flex-shrink: 0;
+  background: var(--mock-bar);
+  border-right: 1px solid var(--mock-line);
+  padding: 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.block {
+  display: block;
+  border-radius: 5px;
+}
+.caption {
+  font: 500 13px var(--font-body);
+  color: var(--ink-2);
+}
+
+.ask {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 300px;
+  max-width: calc(100% - 36px);
+  background: var(--page);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 2px 4px rgba(28, 18, 85, 0.06), 0 24px 48px -16px rgba(28, 18, 85, 0.35);
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.av {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font: 800 15px var(--font-display);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.close {
+  margin-top: 4px;
+}
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.name {
+  font: 700 14px var(--font-body);
+}
+.byline {
+  font: 400 12.5px var(--font-body);
+  color: var(--ink-2);
+}
+.headline {
+  font: 800 19px/1.15 var(--font-display);
+  letter-spacing: -0.01em;
+}
+.message {
+  margin: 0;
+  font: 400 13px/1.5 var(--font-body);
+  color: var(--ink-body);
+}
+.lines {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.amts {
+  display: flex;
+  gap: 6px;
+}
+.amt {
+  flex: 1;
+  height: 36px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 600 13.5px var(--font-body);
+  color: var(--brand-ink);
+}
+.amtOn {
+  background: var(--brand-ink);
+  color: var(--page);
+}
+.pay {
+  height: 42px;
+  border-radius: var(--r-pill);
+  background: var(--brand);
+  color: var(--brand-ink);
+  font: 700 14px var(--font-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.later {
+  font: 500 12px var(--font-body);
+  color: var(--ink-2);
+  text-decoration: underline;
+}
+.powered {
+  font: 400 10.5px var(--font-mono);
+  color: var(--ink-3);
+}
+.sk {
+  display: block;
+  background: var(--surface);
+  border-radius: 6px;
+}
+/* The part that just changed. */
+.hl {
+  outline: 2px dashed var(--change-outline);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+@media (max-width: 560px) {
+  .aside {
+    display: none;
+  }
+}
