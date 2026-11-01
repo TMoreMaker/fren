@@ -52,7 +52,7 @@ export interface PayHandlers {
 export async function renderButtons(
   container: HTMLElement,
   config: ApiConfig,
-  amount: number,
+  amount: () => number,
   anonId: string | null,
   handlers: PayHandlers,
 ): Promise<PayPalButtons> {
@@ -60,7 +60,8 @@ export async function renderButtons(
   const buttons = paypal.Buttons({
     fundingSource: 'paypal',
     style: { layout: 'vertical', shape: 'pill', color: 'gold', label: 'paypal', height: 44 },
-    createOrder: async () => (await createOrder(config, amount, anonId)).orderId,
+    // Read at click time, so a pill changed after the buttons appeared still counts.
+    createOrder: async () => (await createOrder(config, amount(), anonId)).orderId,
     onApprove: async (data: { orderID: string }, actions: { restart(): Promise<void> }) => {
       try {
         const { payerName } = await captureOrder(config, data.orderID, anonId)

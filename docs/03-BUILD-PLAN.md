@@ -216,6 +216,12 @@ Cut in this order, last cut first:
 
 Never cut: the AI trigger, the PayPal payment, the toast, the AI message step, the Overview showing the new tip.
 
+## If there's time (one feature, after everything above)
+
+Not in scope until the user says so. Pick at most one, and only once Phase 6 is safe.
+
+- **Animated thank-you card** (raised 1 Nov). After a tip, the thank-you (frame 4.4) becomes a personal card that opens with a short animation and shows a thank-you note from the founder, with a hand-written feel. Needs a design on the canvas first.
+
 ## Risks
 
 | Risk | What to do |

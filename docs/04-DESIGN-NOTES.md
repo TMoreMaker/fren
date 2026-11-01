@@ -21,6 +21,9 @@ Canvas: Fren Hi-fi, page "Hackathon build" (https://claude.ai/artifact/PPUh4TJEQ
 | 3.1 | Agent prompt says install `@fren/sdk` | Script tag or npm | Spec 6.1 wording. |
 | 5.1 | $136, 24 tips | Seed gives about $131, 23 tips | Whatever the data says. |
 | 5.1 | "Preview your ask", "Share report", chart tabs | Not listed | Ask first before building. |
+| 4.2 | Donate opens a PayPal checkout stand-in (4.3) | PayPal buttons in the toast (spec 6.6) | Agreed 1 Nov: PayPal's own buttons (gold pill, 44px) take the Donate button's place. Until they load, the button reads "Loading PayPal…", disabled (`--surface`, `--ink-disabled`). |
+| 4.2 | No error states | Spec 12 copy | Agreed 1 Nov: one line in the message style above the button area. "PayPal didn't load. Try again." turns Donate into "Try again". Capture failed and other errors keep the PayPal buttons. |
+| 4.4 | "Thank you, Mpho." | Payer name can be missing | Agreed 1 Nov: "Thank you." when PayPal gives no name. |
 
 ## Extra colours from the design
 
@@ -38,5 +41,4 @@ Add others here as they come up, with the frame they came from.
 
 | What | Why | Goes away |
 |---|---|---|
-| Plain card with the PayPal buttons, opened by `fren.test()` or a shown ask | Step 1.2 test of PayPal inside a Shadow DOM | Step 2.3, replaced by the 4.2 toast |
 | Plain test buttons, link, form and Export on the demo host | Steps 1.2 to 2.2 checks (Export waits 1 second, as in 2.4) | Step 2.4, replaced by frame 4.1 |

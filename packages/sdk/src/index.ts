@@ -1,6 +1,6 @@
 // Public API: docs/02-BUILD-SPEC.md section 6.2.
-import { type ApiConfig, initSdk, type ProjectInfo, sendMoment, sendSignals, type Visitor } from './api'
-import { showPaySpike } from './pay-spike'
+import { type ApiConfig, initSdk, type ProjectInfo, sendMoment, sendSignals, trackAsk, type Visitor } from './api'
+import { showToast } from './toast'
 import { customSignal, type Signal, watchSignals } from './signals'
 import { anonId, askedOrTipped, readStorage, sessionId, writeStorage } from './storage'
 
@@ -80,7 +80,7 @@ function flushSignals() {
   sendSignals(config, visitor(), trail)
     .then((result) => {
       debug('verdict', result)
-      if (result.show) openAsk()
+      if (result.show) openAsk(result.headline)
     })
     .catch((err) => debug('signals failed', err))
     .finally(() => {
@@ -92,14 +92,29 @@ function flushSignals() {
     })
 }
 
-function openAsk() {
-  if (!config || askOpen) return
+function openAsk(headline?: string) {
+  if (!config || !project || askOpen) return
+  const api = config
   askOpen = true
   askedThisSession = true
   writeStorage('fren_last_shown', String(Date.now()))
-  // Step 2.1: the step 1.2 PayPal card stands in for the toast until step 2.3.
-  const amount = project?.defaultAmount ?? project?.amounts?.[0] ?? 5
-  showPaySpike(config, amount, () => writeStorage('fren_tipped', '1')).catch((err) => debug('ask failed', err))
+  const track = (type: 'clicked' | 'dismissed') =>
+    trackAsk(api, visitor(), type).catch((err) => debug('track failed', err))
+  showToast({
+    config: api,
+    project,
+    headline,
+    onDonate: () => track('clicked'),
+    // Closing starts the cooldown, which fren_last_shown already holds.
+    onDismiss: () => {
+      askOpen = false
+      track('dismissed')
+    },
+    onPaid: () => {
+      askOpen = false
+      writeStorage('fren_tipped', '1')
+    },
+  })
 }
 
 function safe<A extends unknown[]>(fn: (...args: A) => void) {

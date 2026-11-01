@@ -1,5 +1,5 @@
 // Tip payments: docs/02-BUILD-SPEC.md sections 5.3 and 7.3.
-import { and, eq } from 'drizzle-orm'
+import { and, desc, eq, gt } from 'drizzle-orm'
 import { db, schema } from './db'
 import type { Project } from './db/schema'
 import { captureOrder, createOrder, PayPalError, paypalIssue, readCapture } from './paypal'
@@ -48,9 +48,28 @@ export async function startTip(project: Project, amount: number, anonId: string 
     amountCents: amount * 100,
     currency: project.currency,
     anonId,
+    triggerLabel: anonId ? await lastAskLabel(project.id, anonId) : null,
     status: 'created',
   })
   return order.id
+}
+
+/** What Fren AI said the visitor had just done when the ask was shown, e.g. "Exported chapter-1.pdf". */
+async function lastAskLabel(projectId: string, anonId: string): Promise<string | null> {
+  const [shown] = await db
+    .select({ detail: schema.events.detail })
+    .from(schema.events)
+    .where(
+      and(
+        eq(schema.events.projectId, projectId),
+        eq(schema.events.anonId, anonId),
+        eq(schema.events.type, 'shown'),
+        gt(schema.events.createdAt, new Date(Date.now() - 24 * 60 * 60 * 1000)),
+      ),
+    )
+    .orderBy(desc(schema.events.createdAt))
+    .limit(1)
+  return shown?.detail ?? null
 }
 
 /** Captures the order, completes the donation and logs `paid`. Safe to call twice. */

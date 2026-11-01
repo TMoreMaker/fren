@@ -16,6 +16,10 @@ const demo = {
   makerName: 'Lebo',
   momentDescription: 'When someone exports their first chapter as a PDF or ePub.',
   momentHints: ['A click on Export', 'A PDF or ePub download', 'The first time only'],
+  // The ask copy from frame 4.2, until onboarding (step 3.x) writes it.
+  tone: 'warm' as const,
+  headline: 'Glad that export worked.',
+  message: 'If Inkwell saves you time, a small tip helps me keep it free and ad-free.',
   amounts: [3, 5, 10],
   defaultAmount: 5,
   paypalEmail: process.env.PAYPAL_SANDBOX_PAYEE_EMAIL ?? null,
