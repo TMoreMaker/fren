@@ -18,6 +18,21 @@ export async function createEmptyProject(userId: string) {
   return project
 }
 
+// Where each `onboarding_step` lives (spec section 8). Refresh resumes here.
+const STEP_PATHS: Record<string, string> = {
+  paypal: '/onboarding/paypal',
+  product: '/onboarding/ask/product',
+  you: '/onboarding/ask/you',
+  moment: '/onboarding/ask/moment',
+  tone: '/onboarding/ask/tone',
+  message: '/onboarding/ask/message',
+  amounts: '/onboarding/ask/amounts',
+  review: '/onboarding/ask/review',
+  install: '/onboarding/install',
+  live: '/onboarding/live',
+  done: '/dashboard',
+}
+
 export function onboardingPath(step: string): string {
-  return step === 'done' ? '/dashboard' : '/onboarding/paypal'
+  return STEP_PATHS[step] ?? '/onboarding/paypal'
 }

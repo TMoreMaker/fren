@@ -1,0 +1,83 @@
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  align-items: center;
+}
+.left {
+  flex: 1 1 380px;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.title {
+  margin: 0;
+  font-size: 52px;
+  line-height: 1.02;
+}
+.sub {
+  margin: 0;
+  font: 400 17px/1.5 var(--font-body);
+  color: var(--ink-2);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+}
+.note {
+  font-size: 13px;
+}
+.how {
+  flex: 1 1 440px;
+  min-width: 0;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.howTitle {
+  font: 700 15px var(--font-body);
+  color: var(--brand-ink);
+}
+.item {
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.num {
+  background: var(--tint);
+  font: 800 16px var(--font-display);
+  color: var(--brand-ink);
+}
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.itemTitle {
+  font: 700 16px var(--font-body);
+}
+.login {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: var(--ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 560px) {
+  .main {
+    padding: 24px 16px;
+  }
+  .title {
+    font-size: 40px;
+  }
+}

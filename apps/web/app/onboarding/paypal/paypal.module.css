@@ -1,0 +1,100 @@
+.main {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.title {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1.06;
+}
+.sub {
+  margin: 0;
+  font: 400 16px/1.5 var(--font-body);
+  color: var(--ink-2);
+}
+.box {
+  padding: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.white {
+  background: var(--page);
+}
+.text {
+  flex: 1 1 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.strong {
+  font: 700 16px var(--font-body);
+  overflow-wrap: anywhere;
+}
+.form {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+.label {
+  flex: 1 1 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font: 600 14px var(--font-body);
+}
+.connect {
+  height: 52px;
+}
+.checks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.check {
+  gap: 10px;
+  font: 500 15px var(--font-body);
+}
+.end {
+  justify-content: flex-end;
+}
+.done {
+  border: 2px solid var(--brand);
+  box-shadow: 0 0 0 4px var(--tint);
+}
+.doneIcon {
+  background: var(--brand);
+}
+.link {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: 600 14px var(--font-body);
+  color: var(--ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.next {
+  min-width: 160px;
+}
+@media (max-width: 560px) {
+  .main {
+    padding: 32px 16px;
+  }
+  .title {
+    font-size: 34px;
+  }
+}
