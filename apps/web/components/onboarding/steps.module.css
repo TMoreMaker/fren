@@ -240,3 +240,79 @@
   border-radius: 6px;
   background: var(--surface);
 }
+
+/* AI message (2.6). */
+.drafts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.draftsHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.linkButton {
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  font: 500 13px var(--font-body);
+  color: var(--ink-2);
+  text-decoration: underline;
+}
+.linkButton:disabled {
+  color: var(--ink-disabled);
+  cursor: default;
+}
+.draft {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 2px solid transparent;
+  cursor: pointer;
+  font: 400 15px/1.5 var(--font-body);
+  color: var(--ink);
+}
+.draft:has(input:checked) {
+  background: var(--page);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px var(--tint);
+  cursor: default;
+}
+.draft:has(input:focus-visible) {
+  outline: 2px solid var(--brand-ink);
+  outline-offset: 2px;
+}
+.draft .radio {
+  margin-top: 2px;
+}
+.draft:has(input:checked) .radio {
+  border: 7px solid var(--brand-ink);
+}
+.draftText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.draftEdit {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: none;
+  resize: none;
+  outline: 0;
+  font: inherit;
+  color: inherit;
+  field-sizing: content;
+}
+.draftMeta {
+  font-size: 12.5px;
+}

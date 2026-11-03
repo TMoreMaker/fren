@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import type { Project } from './db/schema'
 import type { Signal } from './signals'
+import { DRAFT_MAX, fallbackDrafts } from './draft-fallback'
 
 const MOMENT_MODEL = 'claude-haiku-4-5-20251001'
 
@@ -151,4 +152,110 @@ export async function planMoment(
     lookFor: plan.lookFor,
     headline: headline && headline.length < 40 && !EMOJI.test(headline) ? headline : null,
   }
+}
+
+const DRAFTS_SYSTEM = `You write short tip requests that indie developers show inside their product, right after a user gets value.
+Rules:
+- Write as the developer, first person, singular ("I", "me").
+- 1 sentence, at most 90 characters.
+- Mention the product by name once.
+- Never guilt the user. Never say "please donate". No emoji. No exclamation marks unless the tone is playful.
+- Do not invent facts about the product.
+Return JSON only: {"drafts":[{"text":"..."},{"text":"..."},{"text":"..."}],"headline":"..."}
+The headline is 3 to 6 words reacting to the moment, e.g. "Glad that export worked."`
+
+const DRAFTS_FORMAT = {
+  type: 'json_schema' as const,
+  schema: {
+    type: 'object',
+    properties: {
+      drafts: {
+        type: 'array',
+        items: { type: 'object', properties: { text: { type: 'string' } }, required: ['text'], additionalProperties: false },
+      },
+      headline: { type: 'string' },
+    },
+    required: ['drafts', 'headline'],
+    additionalProperties: false,
+  },
+}
+
+const TONE_WORDS = {
+  warm: 'friendly and grateful',
+  playful: 'light and a bit cheeky',
+  straight: 'short and plain',
+} as const
+
+/** Fren AI's three drafts for frame 2.6 (spec 7.3). Throws on an API error or bad JSON. */
+async function draftOnce(
+  project: Pick<Project, 'productName' | 'website' | 'makerName' | 'momentDescription' | 'tone'>,
+  timeout: number,
+): Promise<{ drafts: string[]; headline: string | null }> {
+  const tone = project.tone ?? 'warm'
+  const draftSchema = z.object({
+    drafts: z
+      .array(
+        z.object({
+          text: z
+            .string()
+            .trim()
+            .min(1)
+            .max(DRAFT_MAX)
+            .refine((t) => !EMOJI.test(t))
+            .refine((t) => tone === 'playful' || !t.includes('!')),
+        }),
+      )
+      .length(3),
+    headline: z.string(),
+  })
+
+  const reply = await setupClient.beta.messages.create({
+    model: SETUP_MODEL,
+    max_tokens: 2_000,
+    system: DRAFTS_SYSTEM,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          `Product: ${project.productName ?? ''}`,
+          `Website: ${project.website ?? ''}`,
+          `Developer first name: ${project.makerName ?? ''}`,
+          `The moment: ${project.momentDescription ?? ''}`,
+          `Tone: ${tone} (${TONE_WORDS[tone]})`,
+        ].join('\n'),
+      },
+    ],
+    output_config: { effort: 'low', format: DRAFTS_FORMAT },
+    betas: ['server-side-fallback-2026-07-01'],
+    fallbacks: 'default',
+  }, { maxRetries: 0, timeout })
+  if (reply.stop_reason === 'refusal') throw new Error('Drafts refused')
+  const text = reply.content.find((b) => b.type === 'text')?.text ?? ''
+  const parsed = draftSchema.parse(JSON.parse(text))
+  const headline = parsed.headline.trim()
+  return {
+    drafts: parsed.drafts.map((d) => d.text),
+    headline: headline && headline.length < 40 && !EMOJI.test(headline) ? headline : null,
+  }
+}
+
+/**
+ * Three drafts for frame 2.6 (spec 7.3). One retry, then template drafts so the step never breaks.
+ * `fallback` is true when the templates were used. Never throws.
+ */
+export async function writeDrafts(
+  project: Pick<Project, 'productName' | 'website' | 'makerName' | 'momentDescription' | 'tone'>,
+): Promise<{ drafts: string[]; headline: string | null; fallback: boolean }> {
+  // Spec 7.3: 15 seconds in all, for the first try and the retry together.
+  const deadline = Date.now() + 15_000
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const left = deadline - Date.now()
+    if (left < 1_000) break
+    try {
+      return { ...(await draftOnce(project, left)), fallback: false }
+    } catch (err) {
+      console.error(`drafts attempt ${attempt + 1} failed`, err)
+    }
+  }
+  return { drafts: fallbackDrafts(project.productName, project.tone), headline: null, fallback: true }
 }

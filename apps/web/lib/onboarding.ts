@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { db, schema } from './db'
 import type { Project, Tone } from './db/schema'
 import { AMOUNT_PRESETS, type AmountPreset } from './amounts'
+import { DRAFT_MAX } from './draft-fallback'
 import { getProjectForUser, onboardingPath } from './project'
 
 export const STEP_ORDER = [
@@ -46,6 +47,16 @@ export const answerSchemas = {
   you: z.object({ makerName: text(40) }),
   moment: z.object({ momentDescription: text(300) }),
   tone: z.object({ tone: z.enum(['warm', 'playful', 'straight']) }),
+  // Frame 2.6. The headline comes with the picked draft; empty keeps the one saved at 2.4.
+  message: z.object({
+    message: text(DRAFT_MAX),
+    headline: z
+      .string()
+      .trim()
+      .max(39)
+      .optional()
+      .transform((v) => v || undefined),
+  }),
   amounts: z.object({ preset: z.enum(['small', 'pro']) }),
 }
 export type AnswerStep = keyof typeof answerSchemas
@@ -78,6 +89,7 @@ export function fieldsFor(step: AnswerStep, data: Record<string, unknown>): Part
     return { amounts: [...preset.amounts], defaultAmount: preset.defaultAmount }
   }
   if (step === 'tone') return { tone: data.tone as Tone }
+  if (step === 'message') return data.headline ? { message: data.message as string, headline: data.headline as string } : { message: data.message as string }
   return data as Partial<typeof schema.projects.$inferInsert>
 }
 
