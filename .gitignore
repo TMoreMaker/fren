@@ -15,3 +15,6 @@ next-env.d.ts
 # built SDK copied into the web app
 apps/web/public/v1/fren.js
 .vercel
+
+# Written by next dev
+apps/web/AGENTS.md
