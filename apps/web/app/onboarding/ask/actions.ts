@@ -28,6 +28,8 @@ export async function saveAnswers(step: AnswerStep, form: FormData) {
       fields.momentHints = plan?.lookFor ?? []
       if (plan?.headline) fields.headline = plan.headline
     }
+    // The headline from 2.4 stays. The one written here only fills the gap if that plan failed.
+    if (step === 'message' && project.headline) delete fields.headline
     if (!exit) fields.onboardingStep = laterStep(project.onboardingStep, nextStepOf(step))
     await updateProject(project.id, fields)
   }

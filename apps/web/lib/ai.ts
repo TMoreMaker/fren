@@ -2,6 +2,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { z } from 'zod'
 import type { Project } from './db/schema'
+import { fallbackDrafts, MESSAGE_MAX } from './fallback-drafts'
 import type { Signal } from './signals'
 
 const MOMENT_MODEL = 'claude-haiku-4-5-20251001'
@@ -151,4 +152,108 @@ export async function planMoment(
     lookFor: plan.lookFor,
     headline: headline && headline.length < 40 && !EMOJI.test(headline) ? headline : null,
   }
+}
+
+const DRAFTS_SYSTEM = `You write short tip requests that indie developers show inside their product, right after a user gets value.
+Rules:
+- Write as the developer, first person, singular ("I", "me").
+- 1 sentence. Aim for about 70 characters. Never go over 90.
+- Mention the product by name once. Do not use the developer's name: the ask already shows it above your sentence.
+- No semicolons.
+- Never guilt the user. Never say "please donate". No emoji. No exclamation marks unless the tone is playful.
+- Do not invent facts about the product.
+Return JSON only: {"drafts":[{"text":"..."},{"text":"..."},{"text":"..."}],"headline":"..."}
+The headline is 3 to 6 words reacting to the moment, e.g. "Glad that export worked."`
+
+const TONE_MEANING = {
+  warm: 'warm = friendly and grateful',
+  playful: 'playful = light and a bit cheeky',
+  straight: 'straight = short and plain',
+}
+
+const DRAFTS_FORMAT = {
+  type: 'json_schema' as const,
+  schema: {
+    type: 'object',
+    properties: {
+      drafts: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { text: { type: 'string' } },
+          required: ['text'],
+          additionalProperties: false,
+        },
+      },
+      headline: { type: 'string' },
+    },
+    required: ['drafts', 'headline'],
+    additionalProperties: false,
+  },
+}
+
+const draftsSchema = z.object({
+  drafts: z.array(z.object({ text: z.string().trim() })),
+  headline: z.string(),
+})
+
+export interface Drafts {
+  drafts: { text: string; characters: number }[]
+  headline: string | null
+}
+
+function withCounts(texts: string[], headline: string | null): Drafts {
+  return { drafts: texts.map((text) => ({ text, characters: text.length })), headline }
+}
+
+/** Three versions of the ask (spec 7.3). Tries twice, then falls back to templates, so it never throws. */
+export async function writeDrafts(
+  project: Pick<Project, 'productName' | 'website' | 'makerName' | 'momentDescription' | 'tone'>,
+): Promise<Drafts> {
+  const tone = project.tone ?? 'warm'
+  const user = [
+    `Product: ${project.productName ?? ''}`,
+    `Website: ${project.website ?? ''}`,
+    `Developer first name: ${project.makerName ?? ''}`,
+    `The moment: ${project.momentDescription ?? ''}`,
+    `Tone: ${tone}   (${TONE_MEANING[tone]})`,
+  ].join('\n')
+
+  const usable = (t: string) => t.length > 0 && t.length <= MESSAGE_MAX && !EMOJI.test(t) && (tone === 'playful' || !t.includes('!'))
+  // Good drafts from a reply that had a bad one are kept, and templates fill any gap at the end.
+  let good: string[] = []
+  let headline: string | null = null
+
+  // Spec 7.3: 15 seconds in all, for the first try and the retry together.
+  const deadline = Date.now() + 15_000
+
+  for (let attempt = 1; attempt <= 2 && good.length < 3; attempt++) {
+    const left = deadline - Date.now()
+    if (left < 1_000) break
+    try {
+      const reply = await setupClient.beta.messages.create(
+        {
+          model: SETUP_MODEL,
+          max_tokens: 2_000,
+          system: DRAFTS_SYSTEM,
+          messages: [{ role: 'user', content: user }],
+          output_config: { effort: 'low', format: DRAFTS_FORMAT },
+          betas: ['server-side-fallback-2026-07-01'],
+          fallbacks: 'default',
+        },
+        // This loop is the one retry, for bad replies and API errors alike.
+        { maxRetries: 0, timeout: left },
+      )
+      if (reply.stop_reason === 'refusal') throw new Error('Drafts refused')
+      const text = reply.content.find((b) => b.type === 'text')?.text ?? ''
+      const parsed = draftsSchema.parse(JSON.parse(text))
+      good = [...new Set([...good, ...parsed.drafts.map((d) => d.text).filter(usable)])].slice(0, 3)
+      const clean = parsed.headline.trim()
+      if (!headline && clean.length < 40 && usable(clean)) headline = clean
+    } catch (err) {
+      console.error(`drafts attempt ${attempt} failed`, err)
+    }
+  }
+  const templates = fallbackDrafts(project.productName, project.tone)
+  return withCounts([...good, ...templates].slice(0, 3), headline)
 }

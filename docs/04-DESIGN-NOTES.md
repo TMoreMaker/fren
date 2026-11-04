@@ -25,6 +25,10 @@ Canvas: Fren Hi-fi, page "Hackathon build" (https://claude.ai/artifact/PPUh4TJEQ
 | 2.2 to 2.3 | Headline "Enjoying Inkwell?" | No headline until Fren AI writes one | The preview shows "Enjoying {product}?" until 2.4. |
 | 2.4 | Headline "Glad that export worked." | Spec 7.3 writes it at 2.6 | Agreed 1 Nov: the moment plan (7.2) also writes the headline, so the preview changes at 2.4. |
 | 2.4 | Only the filled "Fren AI will watch for" box | Plan takes 1 to 3 seconds | Agreed 1 Nov: the box shows 3 skeleton lines while Fren AI writes. Hidden when the box is empty or the plan failed (spec 12). |
+| 2.6 | Plain cards, editing not drawn | "Edit inline" (build plan 3.4) | Agreed 3 Nov: the picked card's text is editable in place, up to 90 characters. The count and the preview update as you type. |
+| 2.6 | No loading state | Spec 12: skeleton cards, "Writing your message…" | Agreed 3 Nov: the dark tag shows that text, skeleton cards fill the list, "Write new ones" is hidden. Next is off until there is a message. |
+| 2.6 | No state for coming back | Not covered | Agreed 3 Nov: the saved message stays picked as the first card, with 2 new drafts under it. |
+| 2.6 | Headline unchanged | Spec 7.3 also writes a headline | Agreed 3 Nov: keep the 2.4 headline. The 2.6 one only fills the gap if the plan failed. |
 | 2.3 | "lebo.jpg" with Replace, or Upload | Upload can be slow or fail | While uploading, the pill reads "Uploading…". On failure, a line in the frame's warn style: "That photo didn't upload. Try a PNG or JPG under 4 MB." |
 | 2.x | Caption "Shows when Fren AI spots a user's first export." | The moment is the developer's own | "Shows after the moment you describe." until a moment is saved, then "Shows when Fren AI spots the moment you described." |
 | 4.1 | Product drawn as grey blocks | The AI needs labelled buttons (spec 6.4) | Agreed 1 Nov: the frame's blocks get labels using its own classes. Sidebar: "Inkwell" mark, "New chapter", "Chapter 1" to "Chapter 3", "Settings". Header: chapter title, "Rename", "Export". Content stays grey. After Export, the green tick and the dark bottom bar ("Exported chapter-1.pdf", no right-hand box). |

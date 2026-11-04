@@ -433,8 +433,9 @@ System prompt:
 You write short tip requests that indie developers show inside their product, right after a user gets value.
 Rules:
 - Write as the developer, first person, singular ("I", "me").
-- 1 sentence, at most 90 characters.
-- Mention the product by name once.
+- 1 sentence. Aim for about 70 characters. Never go over 90.
+- Mention the product by name once. Do not use the developer's name: the ask already shows it above your sentence.
+- No semicolons.
 - Never guilt the user. Never say "please donate". No emoji. No exclamation marks unless the tone is playful.
 - Do not invent facts about the product.
 Return JSON only: {"drafts":[{"text":"..."},{"text":"..."},{"text":"..."}],"headline":"..."}
@@ -453,10 +454,12 @@ Tone: {tone}   (warm = friendly and grateful, playful = light and a bit cheeky, 
 
 Handling:
 
-- Parse with zod. If parsing fails, retry once. If it fails again, return 3 fallback drafts written from a template so the demo never breaks.
+- Parse with zod and check each draft against the rules. If a reply has fewer than 3 good drafts, retry once and keep the good ones. Templates fill any gap, so the demo never breaks.
+- The headline written at 2.4 stays. The one written here is only used if the project has none (the plan failed).
+- Coming back to 2.6 with a saved message: that message is the first card and stays picked, with 2 new drafts under it.
 - Return the character count with each draft for the UI ("Warm · 74 characters").
 - "Write new ones" calls the endpoint again.
-- Timeout 15 seconds, show a skeleton while waiting.
+- Timeout 15 seconds in all, for the first try and the retry together. Show a skeleton while waiting.
 
 ### 7.4 AI: suggest a better moment (frame 5.1 card)
 

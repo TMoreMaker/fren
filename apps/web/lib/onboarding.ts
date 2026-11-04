@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { db, schema } from './db'
 import type { Project, Tone } from './db/schema'
 import { AMOUNT_PRESETS, type AmountPreset } from './amounts'
+import { MESSAGE_MAX } from './fallback-drafts'
 import { getProjectForUser, onboardingPath } from './project'
 
 export const STEP_ORDER = [
@@ -46,6 +47,14 @@ export const answerSchemas = {
   you: z.object({ makerName: text(40) }),
   moment: z.object({ momentDescription: text(300) }),
   tone: z.object({ tone: z.enum(['warm', 'playful', 'straight']) }),
+  message: z.object({
+    message: text(MESSAGE_MAX),
+    headline: z
+      .string()
+      .trim()
+      .max(60)
+      .transform((v) => v || undefined),
+  }),
   amounts: z.object({ preset: z.enum(['small', 'pro']) }),
 }
 export type AnswerStep = keyof typeof answerSchemas
